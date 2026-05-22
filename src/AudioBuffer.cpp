@@ -16,7 +16,7 @@ AudioBuffer::~AudioBuffer()
 void AudioBuffer::addSample(int16_t sample)
 {
     ringBuffer[writePointer] = sample;
-    writePointer = (writePointer * 1) % WINDOW_SIZE;
+    writePointer = (writePointer + 1) % WINDOW_SIZE;
     samplesSinceLastStep++;
 }
 
@@ -25,7 +25,7 @@ void AudioBuffer::extractAndNormalizeWindow(float *outputBuffer)
     int readPointer = writePointer;
 
     for (int i = 0; i < WINDOW_SIZE; i++) {
-        outputBuffer[i] = ringBuffer[readPointer];
+        outputBuffer[i] = (float)ringBuffer[readPointer];
         readPointer = (readPointer + 1) % WINDOW_SIZE; 
     }
 }
