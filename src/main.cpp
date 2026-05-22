@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include "Inmp441.h"
+#include "AudioBuffer.h"
 
 // Pin configuration
 
@@ -13,6 +14,7 @@
 
 // INMP441
 Inmp441 mic(MIC_WS, MIC_SD, MIC_SCK, I2S_PORT);
+AudioBuffer audioBuffer;
 
 void setup() {
   Serial.begin(115200);
@@ -23,7 +25,6 @@ void setup() {
     Serial.println("Failed to configure INMP441!");
     while(1);
   }
-
 }
 
 void loop() {

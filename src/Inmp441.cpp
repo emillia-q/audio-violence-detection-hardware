@@ -32,6 +32,14 @@ bool Inmp441::begin()
     };
 
     if (i2s_driver_install(i2sPort, &cfg, 0, NULL) != ESP_OK || i2s_set_pin(i2sPort, &pin_cfg) != ESP_OK) 
+        return false;
     i2s_zero_dma_buffer(i2sPort);
     return true;
+}
+
+int Inmp441::readRawData(int32_t *buffer, size_t maxSamples)
+{
+    size_t bytes_read = 0;
+    i2s_read(i2sPort, buffer, maxSamples * sizeof(int32_t), &bytes_read, portMAX_DELAY);
+    return bytes_read / sizeof(int32_t);
 }
