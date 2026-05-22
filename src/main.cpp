@@ -4,7 +4,7 @@
 // Pin configuration
 #define I2S_WS   15   // Word Select
 #define I2S_SD   13   // Serial Data
-#define I2S_SCK  4   // Serial Clock
+#define I2S_SCK  4    // Serial Clock
 
 // Use first available I2S port
 #define I2S_PORT I2S_NUM_0
