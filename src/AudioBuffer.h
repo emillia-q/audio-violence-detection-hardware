@@ -16,4 +16,5 @@ public:
 
     void addSample(int16_t sample);
     void extractAndNormalizeWindow(float* outputBuffer);
+    bool isWindowReady();
 };

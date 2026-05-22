@@ -29,3 +29,12 @@ void AudioBuffer::extractAndNormalizeWindow(float *outputBuffer)
         readPointer = (readPointer + 1) % WINDOW_SIZE; 
     }
 }
+
+bool AudioBuffer::isWindowReady()
+{
+    if (samplesSinceLastStep >= SAMPLE_RATE) {
+        samplesSinceLastStep = 0;
+        return true;
+    }
+    return false;
+}
