@@ -23,11 +23,21 @@ void AudioBuffer::addSample(int16_t sample)
 void AudioBuffer::extractAndNormalizeWindow(float *outputBuffer)
 {
     int readPointer = writePointer;
+    float maxAbs = 0.0f;
 
     for (int i = 0; i < WINDOW_SIZE; i++) {
         outputBuffer[i] = (float)ringBuffer[readPointer];
         readPointer = (readPointer + 1) % WINDOW_SIZE; 
+
+        float calcAbs = fabs(outputBuffer[i]);
+        if (calcAbs > maxAbs)
+            maxAbs = calcAbs;
     }
+
+    // Normalize [-1.0, 1.0]
+    for (int i = 0; i < WINDOW_SIZE; i++)
+        outputBuffer[i] = outputBuffer[i] / maxAbs;
+
 }
 
 bool AudioBuffer::isWindowReady()
