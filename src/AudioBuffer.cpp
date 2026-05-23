@@ -35,8 +35,11 @@ void AudioBuffer::extractAndNormalizeWindow(float *outputBuffer)
     }
 
     // Normalize [-1.0, 1.0]
-    for (int i = 0; i < WINDOW_SIZE; i++)
-        outputBuffer[i] = outputBuffer[i] / maxAbs;
+    // Perform division only if the sound is not perfect silence - unlikely to happen
+    if (maxAbs > 0.0001f) {
+        for (int i = 0; i < WINDOW_SIZE; i++)
+            outputBuffer[i] = outputBuffer[i] / maxAbs;
+    }
 
 }
 
