@@ -3,7 +3,7 @@
 AudioBuffer::AudioBuffer()
 {
     ringBuffer = (int16_t*)malloc(WINDOW_SIZE * sizeof(int16_t));   // Allocate memory on heap
-    memset(ringBuffer, 0, WINDOW_SIZE * sizeof(int16_t));   // Clean up
+    memset(ringBuffer, 0, WINDOW_SIZE * sizeof(int16_t));           // Clean up
     writePointer = 0;
     samplesSinceLastStep = 0;
 }

@@ -17,6 +17,9 @@
 Inmp441 mic(MIC_WS, MIC_SD, MIC_SCK, I2S_PORT);
 AudioBuffer audioBuffer;
 
+// Global buffers
+float modelInputBuffer[32000];
+
 void setup() {
   Serial.begin(115200);
 
@@ -39,7 +42,5 @@ void loop() {
       v |= 0xFF000000;
     
     int16_t sample = v >> 8; 
-
-    Serial.println(sample);
   }
 }
