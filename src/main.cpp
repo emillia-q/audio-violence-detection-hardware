@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include "Inmp441.h"
 #include "AudioBuffer.h"
+#include "MfccExtractor.h"
 
 // Pin configuration
 
@@ -12,10 +13,9 @@
 #define BUFFER_LEN 256
 
 // Object configuration
-
-// INMP441
 Inmp441 mic(MIC_WS, MIC_SD, MIC_SCK, I2S_PORT);
 AudioBuffer audioBuffer;
+MfccExtractor mfccExtr;
 
 // Global buffers
 float modelInputBuffer[32000];
@@ -27,6 +27,13 @@ void setup() {
     Serial.println("INMP441 initialized successfully.");
   else {
     Serial.println("Failed to configure INMP441!");
+    while(1);
+  }
+
+  if(mfccExtr.begin())
+    Serial.println("MFCC DSP Engine initialized successfully.");
+  else {
+    Serial.println("Failed to allocate memory for MFCC!");
     while(1);
   }
 }

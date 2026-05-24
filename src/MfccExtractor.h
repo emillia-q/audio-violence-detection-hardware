@@ -19,4 +19,10 @@ class MfccExtractor {
     float* mel_weights;        // 1025 * 128 = 131200 floatów (filter matrix)
     float* mel_energies;       // N_MELS = 128 (energy on the Mel scale)
     float* dct_matrix;         // 13 * 128 = 1664 floatów (DCT-II matrix)
+
+public:
+    MfccExtractor();
+    ~MfccExtractor();
+
+    bool begin();
 };
