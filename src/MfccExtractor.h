@@ -20,6 +20,15 @@ class MfccExtractor {
     float* mel_energies;       // N_MELS = 128 (energy on the Mel scale)
     float* dct_matrix;         // 13 * 128 = 1664 floatów (DCT-II matrix)
 
+    // Functions implementing DSP pipeline
+    void initMelFilterbank();
+    void initDctMatrix();
+    void extractFrame(const float* audio, int frame_idx);
+    void applyWindowAndFft();
+    void computePowerSpectrum();
+    void applyMelFilterbank();
+    void logTransform();
+    void computeDct(float* frame_out);
 public:
     MfccExtractor();
     ~MfccExtractor();

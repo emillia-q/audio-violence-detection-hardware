@@ -35,3 +35,44 @@ bool MfccExtractor::begin()
 
     return true;
 }
+
+void MfccExtractor::initMelFilterbank()
+{
+    // Convert Hz frequency to Mel scale (Librosa Slaney formula)
+    auto hz_to_mel = [](float hz) {return 3.0f * logf(1.0f +hz / 700.0f);};
+    auto mel_to_hz = [](float mel) {return 700.0f * (expf(mel / 3.0f))-1.0f;};
+
+    float min_mel = hz_to_mel(0.0f);
+    float max_mel = hz_to_mel(SAMPLE_RATE / 2.0f);
+
+    // Generating triangular filter mesh points
+    float mel_pts[N_MELS + 2];
+    for (int i = 0; i < N_MELS + 2; i++) {
+        float m = min_mel + i * (max_mel - min_mel) / (N_MELS +1);
+        mel_pts[i] = mel_to_hz(m);
+    } 
+
+    int fft_bins = N_FFT / 2 + 1;
+    memset(mel_weights, 0, fft_bins * N_MELS * sizeof(float));
+
+    // Building triangular mel filter weights
+    for (int m = 0; m < N_MELS; m++) {
+        float f_low = mel_pts[m];
+        float f_cent = mel_pts[m+1];
+        float f_high = mel_pts[m+2];
+
+        for (int bin = 0; bin < fft_bins; bin++) {
+            float freq = bin * SAMPLE_RATE / N_FFT;
+            float weight = 0.0f;
+
+            if (freq >= f_low && freq <= f_cent) 
+                weight = (freq - f_low) / (f_cent - f_low);
+            else if (freq >= f_cent && freq <= f_high)
+                weight = (f_high - freq) / (f_high - f_cent);
+
+            // Slaney-style normalization - librosa
+            float norm = 2.0f / (f_high - f_low);
+            mel_weights[bin * N_MELS + m] = weight * norm;
+        }
+    }
+}
