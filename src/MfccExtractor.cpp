@@ -107,6 +107,18 @@ void MfccExtractor::extractFrame(const float *audio, int frame_idx)
     }
 }
 
+void MfccExtractor::applyWindowAndFft()
+{
+    // Use ESP-DSP vector multiplication to overlay the Hann window
+    for (int i = 0; i < N_FFT; i++) 
+        fft_complex_buf[2*i] *= window_coeffs[i];
+
+    // Fourier transform
+    dsps_fft2r_fc32(fft_complex_buf, N_FFT);
+    // Binary sorting of results - required by the ESP-DSP algorithm
+    dsps_bit_rev_fc32(fft_complex_buf, N_FFT);
+}
+
 void MfccExtractor::computeDct(float *frame_out)
 {
     // Multiply the log_mel vector by the DCT-II matrix to obtain 13 MFCC features
