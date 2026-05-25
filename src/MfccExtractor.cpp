@@ -91,6 +91,22 @@ void MfccExtractor::initDctMatrix()
     }
 }
 
+void MfccExtractor::extractFrame(const float *audio, int frame_idx)
+{
+    int start_sample = frame_idx * HOP_LENGTH;
+
+    for (int i = 0; i < N_FFT; i++) {
+        int audio_idx = start_sample + i;
+        // Complex format for ESP-DSP: [Re0, Im0, Re1, Im1...]
+        if (audio_idx < 32000) 
+            fft_complex_buf[2 *i] = audio[audio_idx]; // Re
+        else
+            fft_complex_buf[2*i] = 0.0f; // Zero padding at the end of the timeline
+        
+        fft_complex_buf[2*i + 1] = 0.0f; // The imaginary part always starts from zero
+    }
+}
+
 void MfccExtractor::computeDct(float *frame_out)
 {
     // Multiply the log_mel vector by the DCT-II matrix to obtain 13 MFCC features
