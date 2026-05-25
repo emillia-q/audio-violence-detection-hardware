@@ -146,6 +146,16 @@ void MfccExtractor::applyMelFilterbank()
     }
 }
 
+void MfccExtractor::logTransform()
+{
+    // Equivalent to librosa.power_to_db (convert energy to dB scale)
+    for (int m = 0; m < N_MELS; m++) {
+        // Protect against log(0) with a small epsilon (1e-5f)
+        float val = (mel_energies[m] < 1e-5f) ? 1e-5f : mel_energies[m];
+        mel_energies[m] = 10.0f * log10f(val);
+    }
+}
+
 void MfccExtractor::computeDct(float *frame_out)
 {
     // Multiply the log_mel vector by the DCT-II matrix to obtain 13 MFCC features
