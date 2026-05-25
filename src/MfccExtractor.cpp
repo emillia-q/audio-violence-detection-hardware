@@ -33,6 +33,10 @@ bool MfccExtractor::begin()
     if (err != ESP_OK)
         return false; 
 
+    // Pre-calibration of Mel and DCT filter matrices
+    initMelFilterbank();
+    initDctMatrix();
+
     return true;
 }
 
@@ -74,5 +78,15 @@ void MfccExtractor::initMelFilterbank()
             float norm = 2.0f / (f_high - f_low);
             mel_weights[bin * N_MELS + m] = weight * norm;
         }
+    }
+}
+
+void MfccExtractor::initDctMatrix()
+{
+    // Generating weights for Discrete Cosine Transform type II
+    for (int i = 0; i < N_MFCC; i++) {
+        float scale = (i==0) ? sqrtf(1.0f / N_MELS) : sqrtf(2.0f / N_MELS);
+        for (int j = 0; j < N_MELS; j++) 
+            dct_matrix[i * N_MELS + j] = scale * cosf((M_PI * i * (2 * j + 1)) / (2.0f * N_MELS));
     }
 }
