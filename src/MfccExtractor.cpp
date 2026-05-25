@@ -119,6 +119,17 @@ void MfccExtractor::applyWindowAndFft()
     dsps_bit_rev_fc32(fft_complex_buf, N_FFT);
 }
 
+void MfccExtractor::computePowerSpectrum()
+{
+    int fft_bins = N_FFT / 2 + 1;
+    // Extract the amplitude (Power Spectrum) from complex numbers: Re^2 + Im^2
+    for (int i = 0; i < fft_bins; i++) {
+        float re = fft_complex_buf[2*i];
+        float im = fft_complex_buf[2*i + 1];
+        power_spectrum[i] = (re * re) + (im * im);
+    }
+}
+
 void MfccExtractor::computeDct(float *frame_out)
 {
     // Multiply the log_mel vector by the DCT-II matrix to obtain 13 MFCC features
