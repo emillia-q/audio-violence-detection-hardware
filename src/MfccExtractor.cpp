@@ -1,7 +1,7 @@
 #include "MfccExtractor.h"
 
 MfccExtractor::MfccExtractor() : fft_complex_buf(nullptr), window_coeffs(nullptr), power_spectrum(nullptr),
-    mel_weights(nullptr), mel_energies(nullptr), dct_matrix(nullptr)
+                                 mel_weights(nullptr), mel_energies(nullptr), dct_matrix(nullptr)
 {
 }
 
@@ -88,5 +88,16 @@ void MfccExtractor::initDctMatrix()
         float scale = (i==0) ? sqrtf(1.0f / N_MELS) : sqrtf(2.0f / N_MELS);
         for (int j = 0; j < N_MELS; j++) 
             dct_matrix[i * N_MELS + j] = scale * cosf((M_PI * i * (2 * j + 1)) / (2.0f * N_MELS));
+    }
+}
+
+void MfccExtractor::computeDct(float *frame_out)
+{
+    // Multiply the log_mel vector by the DCT-II matrix to obtain 13 MFCC features
+    for (int i = 0; i < N_MFCC; i++) {
+        float sum = 0.0f;
+        for (int j = 0; j < N_MELS; j++) 
+            sum += mel_energies[j] * dct_matrix[i * N_MELS + j];
+        frame_out[i] = sum;
     }
 }
