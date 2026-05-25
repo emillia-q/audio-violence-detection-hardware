@@ -130,6 +130,22 @@ void MfccExtractor::computePowerSpectrum()
     }
 }
 
+void MfccExtractor::applyMelFilterbank()
+{
+    memset(mel_energies, 0, N_MELS * sizeof(float));
+    int fft_bins = N_FFT / 2 + 1;
+
+    // Multiplying the power spectrum by triangular mel filter banks
+    for (int bin = 0; bin < fft_bins; bin++) {
+        float p_val = power_spectrum[bin];
+        if (p_val == 0.0f)
+            continue;
+        
+        for (int m = 0; m < N_MELS; m++) 
+            mel_energies[m] += p_val * mel_weights[bin * N_MELS + m];
+    }
+}
+
 void MfccExtractor::computeDct(float *frame_out)
 {
     // Multiply the log_mel vector by the DCT-II matrix to obtain 13 MFCC features
