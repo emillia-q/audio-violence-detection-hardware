@@ -34,4 +34,7 @@ public:
     ~MfccExtractor();
 
     bool begin();
+    // Takes a pointer to a normalized 32000 float sample from AudioBuffer 
+    // Writes the result to a flat array of size 63 * 13 = 819 floats
+    void compute(const float* audio, float* mfcc_out);
 };

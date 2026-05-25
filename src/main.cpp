@@ -19,6 +19,7 @@ MfccExtractor mfccExtr;
 
 // Global buffers
 float modelInputBuffer[32000];
+float modelFeaturesBuffer[63 * 13]; // Ready features for CNN
 
 void setup() {
   Serial.begin(115200);

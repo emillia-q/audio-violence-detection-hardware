@@ -40,6 +40,21 @@ bool MfccExtractor::begin()
     return true;
 }
 
+void MfccExtractor::compute(const float *audio, float *mfcc_out)
+{
+    // Sliding window cutting 2 seconds of audio per 63 frames
+    for (int f = 0; f < N_FRAMES; f++) {
+        extractFrame(audio, f);
+        applyWindowAndFft();
+        computePowerSpectrum();
+        applyMelFilterbank();
+        logTransform();
+
+        // Save frame result directly to the target output spectrogram [63][13]
+        computeDct(&mfcc_out[f * N_MFCC]);
+    }
+}
+
 void MfccExtractor::initMelFilterbank()
 {
     // Convert Hz frequency to Mel scale (Librosa Slaney formula)
