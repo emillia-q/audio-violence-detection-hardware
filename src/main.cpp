@@ -50,5 +50,17 @@ void loop() {
       v |= 0xFF000000;
     
     int16_t sample = v >> 8; 
+    audioBuffer.addSample(sample);
+  }
+
+  if (audioBuffer.isWindowReady()) {
+    audioBuffer.extractAndNormalizeWindow(modelInputBuffer);
+
+    unsigned long startTime = millis();
+    mfccExtr.compute(modelInputBuffer, modelFeaturesBuffer);
+    unsigned long endTime = millis();
+
+    Serial.printf("MFCC computed successfully in %lu ms!\n", endTime - startTime);
+    Serial.printf("Snapshot of Frame 0, Coeff 0: %.4f\n", modelFeaturesBuffer[0]);
   }
 }

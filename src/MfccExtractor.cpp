@@ -18,12 +18,15 @@ MfccExtractor::~MfccExtractor()
 bool MfccExtractor::begin()
 {
     // Heap memory allocation
-    fft_complex_buf = (float*)malloc(2 * N_FFT * sizeof(float));
-    window_coeffs = (float*)malloc(N_FFT * sizeof(float));
-    power_spectrum = (float*)malloc((N_FFT / 2 + 1) * sizeof(float));
-    mel_weights = (float*)malloc((N_FFT / 2 + 1) * N_MELS * sizeof(float));
-    mel_energies = (float*)malloc(N_MELS * sizeof(float));
-    dct_matrix = (float*)malloc(N_MFCC * N_MELS * sizeof(float));
+    // SRAM
+    fft_complex_buf = (float*)heap_caps_malloc(2 * N_FFT * sizeof(float), MALLOC_CAP_INTERNAL | MALLOC_CAP_32BIT);
+    window_coeffs   = (float*)heap_caps_malloc(N_FFT * sizeof(float), MALLOC_CAP_INTERNAL | MALLOC_CAP_32BIT);
+    power_spectrum  = (float*)heap_caps_malloc((N_FFT / 2 + 1) * sizeof(float), MALLOC_CAP_INTERNAL | MALLOC_CAP_32BIT);
+    mel_energies    = (float*)heap_caps_malloc(N_MELS * sizeof(float), MALLOC_CAP_INTERNAL | MALLOC_CAP_32BIT);
+
+    // PSRAM
+    mel_weights     = (float*)heap_caps_malloc((N_FFT / 2 + 1) * N_MELS * sizeof(float), MALLOC_CAP_SPIRAM);
+    dct_matrix      = (float*)heap_caps_malloc(N_MFCC * N_MELS * sizeof(float), MALLOC_CAP_SPIRAM);
     
     if (!fft_complex_buf || !window_coeffs || !power_spectrum || !mel_weights || !mel_energies || !dct_matrix)
         return false; // Lack of RAM memory
@@ -32,6 +35,8 @@ bool MfccExtractor::begin()
     esp_err_t err = dsps_fft2r_init_fc32(NULL, CONFIG_DSP_MAX_FFT_SIZE);
     if (err != ESP_OK)
         return false; 
+
+    dsps_wind_hann_f32(window_coeffs, N_FFT);
 
     // Pre-calibration of Mel and DCT filter matrices
     initMelFilterbank();
@@ -108,12 +113,12 @@ void MfccExtractor::initDctMatrix()
 
 void MfccExtractor::extractFrame(const float *audio, int frame_idx)
 {
-    int start_sample = frame_idx * HOP_LENGTH;
+    int start_sample = frame_idx * HOP_LENGTH - (N_FFT / 2);
 
     for (int i = 0; i < N_FFT; i++) {
         int audio_idx = start_sample + i;
         // Complex format for ESP-DSP: [Re0, Im0, Re1, Im1...]
-        if (audio_idx < 32000) 
+        if (audio_idx >= 0 && audio_idx < 32000) 
             fft_complex_buf[2 *i] = audio[audio_idx]; // Re
         else
             fft_complex_buf[2*i] = 0.0f; // Zero padding at the end of the timeline
