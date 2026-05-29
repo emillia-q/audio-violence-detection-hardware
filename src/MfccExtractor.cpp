@@ -1,7 +1,7 @@
 #include "MfccExtractor.h"
 
 MfccExtractor::MfccExtractor() : fft_complex_buf(nullptr), window_coeffs(nullptr), power_spectrum(nullptr),
-                                 mel_weights(nullptr), mel_energies(nullptr), dct_matrix(nullptr)
+                                 mel_weights(nullptr), mel_spectrogram(nullptr), dct_matrix(nullptr)
 {
 }
 
@@ -11,7 +11,7 @@ MfccExtractor::~MfccExtractor()
     free(window_coeffs);
     free(power_spectrum);
     free(mel_weights);
-    free(mel_energies);
+    free(mel_spectrogram);
     free(dct_matrix);
 }
 
@@ -20,15 +20,15 @@ bool MfccExtractor::begin()
     // Heap memory allocation
     // SRAM
     fft_complex_buf = (float*)heap_caps_malloc(2 * N_FFT * sizeof(float), MALLOC_CAP_INTERNAL | MALLOC_CAP_32BIT);
-    window_coeffs   = (float*)heap_caps_malloc(N_FFT * sizeof(float), MALLOC_CAP_INTERNAL | MALLOC_CAP_32BIT);
-    power_spectrum  = (float*)heap_caps_malloc((N_FFT / 2 + 1) * sizeof(float), MALLOC_CAP_INTERNAL | MALLOC_CAP_32BIT);
-    mel_energies    = (float*)heap_caps_malloc(N_MELS * sizeof(float), MALLOC_CAP_INTERNAL | MALLOC_CAP_32BIT);
+    window_coeffs = (float*)heap_caps_malloc(N_FFT * sizeof(float), MALLOC_CAP_INTERNAL | MALLOC_CAP_32BIT);
+    power_spectrum = (float*)heap_caps_malloc((N_FFT / 2 + 1) * sizeof(float), MALLOC_CAP_INTERNAL | MALLOC_CAP_32BIT);
 
     // PSRAM
-    mel_weights     = (float*)heap_caps_malloc((N_FFT / 2 + 1) * N_MELS * sizeof(float), MALLOC_CAP_SPIRAM);
-    dct_matrix      = (float*)heap_caps_malloc(N_MFCC * N_MELS * sizeof(float), MALLOC_CAP_SPIRAM);
+    mel_weights = (float*)heap_caps_malloc((N_FFT / 2 + 1) * N_MELS * sizeof(float), MALLOC_CAP_SPIRAM);
+    mel_spectrogram = (float*)heap_caps_malloc(N_FRAMES * N_MELS * sizeof(float), MALLOC_CAP_SPIRAM);
+    dct_matrix = (float*)heap_caps_malloc(N_MFCC * N_MELS * sizeof(float), MALLOC_CAP_SPIRAM);
     
-    if (!fft_complex_buf || !window_coeffs || !power_spectrum || !mel_weights || !mel_energies || !dct_matrix)
+    if (!fft_complex_buf || !window_coeffs || !power_spectrum || !mel_weights || !mel_spectrogram || !dct_matrix)
         return false; // Lack of RAM memory
 
     // ESP-DSP library initialization for FFT
@@ -36,7 +36,9 @@ bool MfccExtractor::begin()
     if (err != ESP_OK)
         return false; 
 
-    dsps_wind_hann_f32(window_coeffs, N_FFT);
+        // Periodic Hann window to match librosa/scipy get_window('hann', N, fftbins=True)
+    for (int i = 0; i < N_FFT; i++)
+        window_coeffs[i] = 0.5f * (1.0f - cosf(2.0f * M_PI * i / N_FFT));
 
     // Pre-calibration of Mel and DCT filter matrices
     initMelFilterbank();
@@ -47,24 +49,42 @@ bool MfccExtractor::begin()
 
 void MfccExtractor::compute(const float *audio, float *mfcc_out)
 {
-    // Sliding window cutting 2 seconds of audio per 63 frames
+    // Build the power mel spectrogram for all 63 frames
     for (int f = 0; f < N_FRAMES; f++) {
         extractFrame(audio, f);
         applyWindowAndFft();
         computePowerSpectrum();
-        applyMelFilterbank();
-        logTransform();
-
-        // Save frame result directly to the target output spectrogram [63][13]
-        computeDct(&mfcc_out[f * N_MFCC]);
+        applyMelFilterbank(&mel_spectrogram[f * N_MELS]);
     }
+
+    // Convert the WHOLE spectrogram to dB
+    powerToDb();
+
+    // DCT-II per frame -> [63][13] features
+    for (int f = 0; f < N_FRAMES; f++)
+    computeDct(&mel_spectrogram[f* N_MELS], &mfcc_out[f* N_MFCC]);
+
 }
 
 void MfccExtractor::initMelFilterbank()
 {
-    // Convert Hz frequency to Mel scale (Librosa Slaney formula)
-    auto hz_to_mel = [](float hz) {return 3.0f * logf(1.0f +hz / 700.0f);};
-    auto mel_to_hz = [](float mel) {return 700.0f * (expf(mel / 3.0f))-1.0f;};
+    // Convert Hz <-> Mel using the Slaney scale (librosa default, htk=False):
+    // linear below 1000 Hz, logarithmic above.
+    const float f_sp = 200.0f / 3.0f;             // 66.667 Hz per mel in the linear region
+    const float min_log_hz = 1000.0f;
+    const float min_log_mel = min_log_hz / f_sp;  // 15.0
+    const float logstep = logf(6.4f) / 27.0f;
+
+    auto hz_to_mel = [&](float hz) -> float {
+        if (hz < min_log_hz)
+            return hz / f_sp;
+        return min_log_mel + logf(hz / min_log_hz) / logstep;
+    };
+    auto mel_to_hz = [&](float mel) -> float {
+        if (mel < min_log_mel)
+            return f_sp * mel;
+        return min_log_hz * expf(logstep * (mel - min_log_mel));
+    };
 
     float min_mel = hz_to_mel(0.0f);
     float max_mel = hz_to_mel(SAMPLE_RATE / 2.0f);
@@ -116,13 +136,17 @@ void MfccExtractor::extractFrame(const float *audio, int frame_idx)
     int start_sample = frame_idx * HOP_LENGTH - (N_FFT / 2);
 
     for (int i = 0; i < N_FFT; i++) {
-        int audio_idx = start_sample + i;
+        int idx = start_sample + i;
+
+        // librosa center=True pads the signal with mode='reflect' (no edge repetition).
+        // Single reflection is enough here because N_FFT/2 (1024) << N_SAMPLES (32000).
+        if (idx < 0)
+            idx = -idx;
+        else if (idx >= N_SAMPLES)
+            idx = 2 * (N_SAMPLES - 1) - idx;
+
         // Complex format for ESP-DSP: [Re0, Im0, Re1, Im1...]
-        if (audio_idx >= 0 && audio_idx < 32000) 
-            fft_complex_buf[2 *i] = audio[audio_idx]; // Re
-        else
-            fft_complex_buf[2*i] = 0.0f; // Zero padding at the end of the timeline
-        
+        fft_complex_buf[2 *i] = audio[idx]; // Re
         fft_complex_buf[2*i + 1] = 0.0f; // The imaginary part always starts from zero
     }
 }
@@ -150,9 +174,9 @@ void MfccExtractor::computePowerSpectrum()
     }
 }
 
-void MfccExtractor::applyMelFilterbank()
+void MfccExtractor::applyMelFilterbank(float* out)
 {
-    memset(mel_energies, 0, N_MELS * sizeof(float));
+    memset(out, 0, N_MELS * sizeof(float));
     int fft_bins = N_FFT / 2 + 1;
 
     // Multiplying the power spectrum by triangular mel filter banks
@@ -162,27 +186,42 @@ void MfccExtractor::applyMelFilterbank()
             continue;
         
         for (int m = 0; m < N_MELS; m++) 
-            mel_energies[m] += p_val * mel_weights[bin * N_MELS + m];
+            out[m] += p_val * mel_weights[bin * N_MELS + m];
     }
 }
 
-void MfccExtractor::logTransform()
+void MfccExtractor::powerToDb()
 {
-    // Equivalent to librosa.power_to_db (convert energy to dB scale)
-    for (int m = 0; m < N_MELS; m++) {
-        // Protect against log(0) with a small epsilon (1e-5f)
-        float val = (mel_energies[m] < 1e-5f) ? 1e-5f : mel_energies[m];
-        mel_energies[m] = 10.0f * log10f(val);
+    // Defaults used by librosa.feature.mfcc:
+    // ref=1.0, amin=1e-10, top_db=80.0
+    // It must run after all frames are ready
+    const int total = N_FRAMES * N_MELS;
+    const float amin = 1e-10f;
+    const float top_db = 80.0f;
+
+    float max_db = -1e30f;
+    for (int i = 0; i < total; i++) {
+        float v = (mel_spectrogram[i] < amin) ? amin : mel_spectrogram[i];
+        float db = 10.0f * log10f(v); // ref=1.0 -> minus 10*log10(1) = 0
+        mel_spectrogram[i] = db;
+        if (db > max_db)
+            max_db = db;
+    }
+
+    float floor_db = max_db - top_db;
+    for (int i = 0; i < total; i++) {
+        if (mel_spectrogram[i] < floor_db)
+            mel_spectrogram[i] = floor_db;
     }
 }
 
-void MfccExtractor::computeDct(float *frame_out)
+void MfccExtractor::computeDct(const float *log_mel, float *frame_out)
 {
     // Multiply the log_mel vector by the DCT-II matrix to obtain 13 MFCC features
     for (int i = 0; i < N_MFCC; i++) {
         float sum = 0.0f;
         for (int j = 0; j < N_MELS; j++) 
-            sum += mel_energies[j] * dct_matrix[i * N_MELS + j];
+            sum += log_mel[j] * dct_matrix[i * N_MELS + j];
         frame_out[i] = sum;
     }
 }
