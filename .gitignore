@@ -5,3 +5,4 @@
 .vscode/ipch
 
 include/model_data.h
+include/golden_input.h

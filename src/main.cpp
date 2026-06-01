@@ -2,6 +2,7 @@
 #include "Inmp441.h"
 #include "AudioBuffer.h"
 #include "MfccExtractor.h"
+#include "golden_input.h"
 
 // Model
 #include "model_data.h"
@@ -45,6 +46,34 @@ namespace {
 
 void setup() {
   Serial.begin(115200);
+
+  Serial.println("--- START TEST ---");
+  
+  // Same logic as in AudioBuffer but without using ringBuffer
+  for(int i = 0; i < 32000; i++) {
+      modelInputBuffer[i] = golden_input[i];
+  }
+
+  float maxAbs = 0.0f;
+  for (int i = 0; i < 32000; i++) {
+      float calcAbs = fabs(modelInputBuffer[i]);
+      if (calcAbs > maxAbs) maxAbs = calcAbs;
+  }
+
+  // Normalize
+  if (maxAbs > 0.0001f) {
+      for (int i = 0; i < 32000; i++) {
+          modelInputBuffer[i] = modelInputBuffer[i] / maxAbs;
+      }
+  }
+
+  Serial.println("--- FIRST 10 SAMPLES ---");
+  for (int i = 0; i < 10; i++) {
+      Serial.printf("[%d]: %.8f\n", i, modelInputBuffer[i]);
+  }
+  Serial.println("--------------------------");
+
+  while(1);
 
   if(mic.begin())
     Serial.println("INMP441 initialized successfully.");
