@@ -47,8 +47,24 @@ namespace {
 void setup() {
   Serial.begin(115200);
 
+  if(mic.begin())
+    Serial.println("INMP441 initialized successfully.");
+  else {
+    Serial.println("Failed to configure INMP441!");
+    while(1);
+  }
+
+  if(mfccExtr.begin())
+    Serial.println("MFCC DSP Engine initialized successfully.");
+  else {
+    Serial.println("Failed to allocate memory for MFCC!");
+    while(1);
+  }
+
+  // ---------------- TEST -------------------
   Serial.println("--- START TEST ---");
   
+  // Normalize audio data
   // Same logic as in AudioBuffer but without using ringBuffer
   for(int i = 0; i < 32000; i++) {
       modelInputBuffer[i] = golden_input[i];
@@ -71,23 +87,20 @@ void setup() {
   for (int i = 0; i < 10; i++) {
       Serial.printf("[%d]: %.8f\n", i, modelInputBuffer[i]);
   }
+
+  // Compute mfcc
+  Serial.println("MFCC TEST");
+  mfccExtr.compute(modelInputBuffer, modelFeaturesBuffer);
+    
+  Serial.println("13 MFCC (Frame 0):");
+  for (int i = 806; i < 819; i++) {
+      Serial.printf("%.8f\n", modelFeaturesBuffer[i]);
+  }
   Serial.println("--------------------------");
 
   while(1);
 
-  if(mic.begin())
-    Serial.println("INMP441 initialized successfully.");
-  else {
-    Serial.println("Failed to configure INMP441!");
-    while(1);
-  }
-
-  if(mfccExtr.begin())
-    Serial.println("MFCC DSP Engine initialized successfully.");
-  else {
-    Serial.println("Failed to allocate memory for MFCC!");
-    while(1);
-  }
+  // ---------------- END TEST -------------------
 
   // Tflite init
   // Allocate memory in PSRAM
