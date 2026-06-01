@@ -92,8 +92,8 @@ void setup() {
   Serial.println("MFCC TEST");
   mfccExtr.compute(modelInputBuffer, modelFeaturesBuffer);
     
-  Serial.println("13 MFCC (Frame 0):");
-  for (int i = 806; i < 819; i++) {
+  Serial.println("13 MFCC:");
+  for (int i = 0; i < 819; i++) {
       Serial.printf("%.8f\n", modelFeaturesBuffer[i]);
   }
   Serial.println("--------------------------");
