@@ -133,7 +133,7 @@ void loop() {
     if (invoke_status != kTfLiteOk)
         error_reporter->Report("Invoke failed!");
 
-    Serial.printf("AI Inference successful in %lu ms!\n", inferenceEnd - inferenceStart);
+    Serial.printf("AI Inference in %lu ms\n", inferenceEnd - inferenceStart);
 
     Serial.println("--- PRED ---");
     Serial.printf("Ambient: %.4f\n", model_output->data.f[0]);
