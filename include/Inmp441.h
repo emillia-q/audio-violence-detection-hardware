@@ -13,5 +13,5 @@ public:
     Inmp441(int ws, int sd, int sck, i2s_port_t port = I2S_NUM_0);
 
     bool begin();
-    int readRawData(int32_t* buffer, size_t maxSamples);
+    int readSamples(int16_t* buffer, size_t maxSamples);
 };

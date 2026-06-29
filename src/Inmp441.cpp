@@ -37,9 +37,25 @@ bool Inmp441::begin()
     return true;
 }
 
-int Inmp441::readRawData(int32_t *buffer, size_t maxSamples)
+int Inmp441::readSamples(int16_t *buffer, size_t maxSamples)
 {
+    int32_t raw_hardware_buff[maxSamples];
     size_t bytes_read = 0;
-    i2s_read(i2sPort, buffer, maxSamples * sizeof(int32_t), &bytes_read, portMAX_DELAY);
-    return bytes_read / sizeof(int32_t);
+
+    // Read from i2s
+    i2s_read(i2sPort, raw_hardware_buff, maxSamples * sizeof(int32_t), &bytes_read, portMAX_DELAY);
+    int samples_read = bytes_read / sizeof(int32_t);
+
+    // Bit conversion
+    for (int i = 0; i < samples_read; i++) {
+        // Shift right by 8 to drop empty low bits, then mask to keep clean 24-bit audio
+        int32_t v = (raw_hardware_buff[i] >> 8) & 0xFFFFFF;
+        // If the 24th bit is 1 (negative), sign-extend the top 8 bits to 0xFF
+        if (v & 0x800000) 
+        v |= 0xFF000000;
+        
+        // Convert to 16-bit and write to output buffer
+        buffer[i] = (int16_t)(v >> 8);
+    }
+    return samples_read;
 }
