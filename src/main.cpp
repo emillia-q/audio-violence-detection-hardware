@@ -71,27 +71,7 @@ void loop() {
     // MFCC extraction
     mfccExtr.compute(modelInputBuffer, modelFeaturesBuffer);
 
-    // Copy calculated MFCC to tensor input
-    // 63 * 13 = 819
-    for (int i = 0; i < 63 * 13; i++) {
-        model_input->data.f[i] = modelFeaturesBuffer[i];
-    }
-
-    // Invoke CNN
-    unsigned long inferenceStart = millis();
-    TfLiteStatus invoke_status = interpreter->Invoke();
-    unsigned long inferenceEnd = millis();
-
-    if (invoke_status != kTfLiteOk)
-        error_reporter->Report("Invoke failed!");
-
-    Serial.printf("AI Inference in %lu ms\n", inferenceEnd - inferenceStart);
-
-    Serial.println("--- PRED ---");
-    Serial.printf("Ambient: %.4f\n", model_output->data.f[0]);
-    Serial.printf("Speech: %.4f\n", model_output->data.f[1]);
-    Serial.printf("Violence: %.4f\n", model_output->data.f[2]);
-
-    Serial.println("-----------------------------");
+    // Model prediction
+    cnnModel.prediction(modelFeaturesBuffer);
   }
 }
