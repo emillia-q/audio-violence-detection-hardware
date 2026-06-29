@@ -15,10 +15,9 @@ class CnnModel {
     tflite::MicroInterpreter* interpreter = nullptr;
     TfLiteTensor* model_input = nullptr;
     TfLiteTensor* model_output = nullptr;
-
     // Tensor Arena - RAM area where TF performs the mathematical operations of the network
-    const int kTensorArenaSize = 128 * 1024; // 128 KB
     uint8_t* tensor_arena = nullptr;
+    const int kTensorArenaSize = 128 * 1024; // 128 KB
 
     tflite::AllOpsResolver resolver;
     tflite::MicroErrorReporter micro_error_reporter;
@@ -26,5 +25,5 @@ class CnnModel {
 public:
     CnnModel();
     ~CnnModel();
-    
+
 };

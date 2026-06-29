@@ -22,11 +22,6 @@ MfccExtractor mfccExtr;
 EXT_RAM_ATTR float modelInputBuffer[32000];
 EXT_RAM_ATTR float modelFeaturesBuffer[63 * 13]; // Ready features for CNN
 
-// Tflite config
-namespace {
-  
-}
-
 void setup() {
   Serial.begin(115200);
 
