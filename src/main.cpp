@@ -2,15 +2,7 @@
 #include "Inmp441.h"
 #include "AudioBuffer.h"
 #include "MfccExtractor.h"
-
-// Model
-#include "model_data.h"
-
-// TensorFlow
-#include "tensorflow/lite/micro/all_ops_resolver.h"
-#include "tensorflow/lite/micro/micro_error_reporter.h"
-#include "tensorflow/lite/micro/micro_interpreter.h"
-#include "tensorflow/lite/schema/schema_generated.h"
+#include "CnnModel.h"
 
 // Pin configuration
 
@@ -32,15 +24,7 @@ EXT_RAM_ATTR float modelFeaturesBuffer[63 * 13]; // Ready features for CNN
 
 // Tflite config
 namespace {
-  tflite::ErrorReporter* error_reporter = nullptr;
-  const tflite::Model* model = nullptr;
-  tflite::MicroInterpreter* interpreter = nullptr;
-  TfLiteTensor* model_input = nullptr;
-  TfLiteTensor* model_output = nullptr;
-
-  // Tensor Arena - RAM area where TF performs the mathematical operations of the network
-  const int kTensorArenaSize = 128 * 1024; // 128 KB
-  uint8_t* tensor_arena = nullptr;
+  
 }
 
 void setup() {
