@@ -1,5 +1,7 @@
 # pragma once
 
+#include <Arduino.h>
+
 // Model
 #include "model_data.h"
 
@@ -25,5 +27,7 @@ class CnnModel {
 public:
     CnnModel();
     ~CnnModel();
+
+    bool begin();
 
 };

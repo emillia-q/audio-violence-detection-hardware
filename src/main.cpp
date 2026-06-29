@@ -17,6 +17,7 @@
 Inmp441 mic(MIC_WS, MIC_SD, MIC_SCK, I2S_PORT);
 AudioBuffer audioBuffer;
 MfccExtractor mfccExtr;
+CnnModel cnnModel;
 
 // Global buffers
 EXT_RAM_ATTR float modelInputBuffer[32000];
@@ -25,6 +26,7 @@ EXT_RAM_ATTR float modelFeaturesBuffer[63 * 13]; // Ready features for CNN
 void setup() {
   Serial.begin(115200);
 
+  // Mic init
   if(mic.begin())
     Serial.println("INMP441 initialized successfully.");
   else {
@@ -32,10 +34,19 @@ void setup() {
     while(1);
   }
 
+  // ESP-DSP MFCC init
   if(mfccExtr.begin())
     Serial.println("MFCC DSP Engine initialized successfully.");
   else {
     Serial.println("Failed to allocate memory for MFCC!");
+    while(1);
+  }
+
+  // CNN model init
+  if(cnnModel.begin())
+    Serial.println("CNN Model loaded successfully.");
+  else {
+    Serial.println("Failed to load CNN model!");
     while(1);
   }
 }
