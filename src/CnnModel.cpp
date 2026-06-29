@@ -51,11 +51,11 @@ bool CnnModel::begin()
     return true;
 }
 
-void CnnModel::prediction(const float* modelFeaturesBuffer)
+void CnnModel::prediction(const float* modelFeaturesBuffer, size_t feature_count)
 {
     // Copy calculated MFCC to tensor input
     // 63 * 13 = 819
-    for (int i = 0; i < 63 * 13; i++) {
+    for (int i = 0; i < feature_count; i++) {
         model_input->data.f[i] = modelFeaturesBuffer[i];
     }
 

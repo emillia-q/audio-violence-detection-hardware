@@ -11,7 +11,9 @@
 #define MIC_SD   13         // Serial Data
 #define MIC_SCK  4          // Serial Clock
 #define I2S_PORT I2S_NUM_0  // Use first available I2S port
+
 #define BUFFER_LEN 256
+constexpr size_t feature_count = 63 * 13;
 
 // Object configuration
 Inmp441 mic(MIC_WS, MIC_SD, MIC_SCK, I2S_PORT);
@@ -21,7 +23,7 @@ CnnModel cnnModel;
 
 // Global buffers
 EXT_RAM_ATTR float modelInputBuffer[32000];
-EXT_RAM_ATTR float modelFeaturesBuffer[63 * 13]; // Ready features for CNN
+EXT_RAM_ATTR float modelFeaturesBuffer[feature_count]; // Ready features for CNN
 
 void setup() {
   Serial.begin(115200);
@@ -72,6 +74,6 @@ void loop() {
     mfccExtr.compute(modelInputBuffer, modelFeaturesBuffer);
 
     // Model prediction
-    cnnModel.prediction(modelFeaturesBuffer);
+    cnnModel.prediction(modelFeaturesBuffer, feature_count);
   }
 }

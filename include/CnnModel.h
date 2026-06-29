@@ -29,5 +29,5 @@ public:
     ~CnnModel();
 
     bool begin();
-    void prediction(const float* modelFeaturesBuffer);
+    void prediction(const float* modelFeaturesBuffer, size_t feature_count);
 };
