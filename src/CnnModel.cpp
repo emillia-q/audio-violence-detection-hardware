@@ -6,6 +6,7 @@ CnnModel::CnnModel()
 
 CnnModel::~CnnModel()
 {
+    delete interpreter;
     free(tensor_arena);
 }
 
