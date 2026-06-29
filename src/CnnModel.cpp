@@ -21,7 +21,6 @@ bool CnnModel::begin()
     }
 
     // Set up logging
-    static tflite::MicroErrorReporter micro_error_reporter;
     error_reporter = &micro_error_reporter;
 
     // Map the model into a usable data structure
