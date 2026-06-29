@@ -31,12 +31,10 @@ bool CnnModel::begin()
     }
 
     // TODO: Load only data used in model training (Conv2D, Dense, MaxPool etc.)
-    static tflite::AllOpsResolver resolver;
 
     // Build an interpreter to run the model
-    static tflite::MicroInterpreter static_interpreter(
+    interpreter = new tflite::MicroInterpreter(
         model, resolver, tensor_arena, kTensorArenaSize, error_reporter);
-    interpreter = &static_interpreter;
 
     // Allocate memory from the tensor_arena for the model's tensors
     TfLiteStatus allocate_status = interpreter->AllocateTensors();
