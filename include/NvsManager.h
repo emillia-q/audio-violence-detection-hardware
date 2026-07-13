@@ -21,4 +21,8 @@ public:
 
     // WiFi
     static void saveWiFiCredentials(const String& ssid, const String& pass);
+    static void clearWiFiConfig();
+
+    // Activation
+    static void setActivated(bool status);
 };

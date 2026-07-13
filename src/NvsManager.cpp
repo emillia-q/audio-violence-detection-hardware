@@ -44,3 +44,18 @@ void NvsManager::saveWiFiCredentials(const String &ssid, const String &pass)
     prefs.putString(KEY_PASS, pass);
     prefs.end();
 }
+
+void NvsManager::clearWiFiConfig()
+{
+    prefs.begin(NAMESPACE, false);
+    prefs.remove(KEY_SSID);
+    prefs.remove(KEY_PASS);
+    prefs.end();
+}
+
+void NvsManager::setActivated(bool status)
+{
+    prefs.begin(NAMESPACE, false);
+    prefs.putBool(KEY_ACTIVATED, status);
+    prefs.end();
+}
