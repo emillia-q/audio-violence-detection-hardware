@@ -11,4 +11,8 @@ NvsManager::NvsManager()
 {
 }
 
-
+void NvsManager::init()
+{
+    prefs.begin(NAMESPACE, false);
+    prefs.end();
+}
