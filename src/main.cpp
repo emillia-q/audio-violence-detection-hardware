@@ -36,7 +36,8 @@ void setup() {
     Serial.println("NVS Error");
     while (1);
   }
-  if (!NvsManager::hasDeviceSecret)
+  
+  if (!NvsManager::hasDeviceSecret())
     NvsManager::saveDeviceSecret(DEVICE_SECRET);
 
   // Mic init
