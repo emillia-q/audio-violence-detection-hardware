@@ -3,6 +3,8 @@
 #include "AudioBuffer.h"
 #include "MfccExtractor.h"
 #include "CnnModel.h"
+#include"secret.h"
+#include"NvsManager.h"
 
 // Pin configuration
 
