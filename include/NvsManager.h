@@ -25,4 +25,5 @@ public:
 
     // Activation
     static void setActivated(bool status);
+    static bool isActivated();
 };

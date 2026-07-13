@@ -59,3 +59,11 @@ void NvsManager::setActivated(bool status)
     prefs.putBool(KEY_ACTIVATED, status);
     prefs.end();
 }
+
+bool NvsManager::isActivated()
+{
+    prefs.begin(NAMESPACE, true);
+    bool activated = prefs.getBool(KEY_ACTIVATED);
+    prefs.end();
+    return activated;
+}
