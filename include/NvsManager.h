@@ -14,4 +14,5 @@ class NvsManager {
 public:
     static bool begin();
     static void saveDeviceSecret(const String& secret);
+    static bool hasDeviceSecret();
 };

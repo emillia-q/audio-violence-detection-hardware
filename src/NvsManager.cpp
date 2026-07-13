@@ -24,3 +24,11 @@ void NvsManager::saveDeviceSecret(const String &secret)
     prefs.putString(KEY_SECRET, secret);
     prefs.end();
 }
+
+bool NvsManager::hasDeviceSecret()
+{
+    prefs.begin(NAMESPACE, true);
+    bool exists = prefs.isKey(KEY_SECRET);
+    prefs.end();
+    return exists;
+}
