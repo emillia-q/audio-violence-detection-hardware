@@ -5,6 +5,7 @@
 #include "CnnModel.h"
 #include"secret.h"
 #include"NvsManager.h"
+#include"WifiPortal.h"
 
 // Pin configuration
 
@@ -28,6 +29,9 @@ CnnModel cnnModel;
 EXT_RAM_ATTR float modelInputBuffer[32000];
 EXT_RAM_ATTR float modelFeaturesBuffer[feature_count]; // Ready features for CNN
 
+// Program variables
+bool isConfigMode = false;
+
 void setup() {
   Serial.begin(115200);
 
@@ -37,8 +41,15 @@ void setup() {
     while (1);
   }
   
+  // First check the device secret key
   if (!NvsManager::hasDeviceSecret())
     NvsManager::saveDeviceSecret(DEVICE_SECRET);
+
+  // Then run the hotspot mode
+  if (!NvsManager::hasWiFiCredentials() || !NvsManager::hasUserEmail()) {
+    isConfigMode = true;
+    WifiPortal::startConfigurationMode();
+  }
 
   // Mic init
   if(mic.begin())
@@ -66,6 +77,13 @@ void setup() {
 }
 
 void loop() {
+  // Checks if user has connected to hotspot
+  if (isConfigMode) {
+    WifiPortal::handleClient();
+    delay(1);
+    return;
+  }
+
   int16_t sample_buffer[BUFFER_LEN];
   int samples_read = mic.readSamples(sample_buffer, BUFFER_LEN);
   for (int i = 0; i < samples_read; i++)
