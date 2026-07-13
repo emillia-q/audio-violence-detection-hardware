@@ -22,6 +22,7 @@ public:
     // WiFi
     static void saveWiFiCredentials(const String& ssid, const String& pass);
     static bool hasWiFiCredentials();
+    static String getWiFiSsid();
     static void clearWiFiConfig();
 
     // Activation

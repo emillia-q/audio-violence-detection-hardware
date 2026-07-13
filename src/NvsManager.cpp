@@ -54,6 +54,13 @@ bool NvsManager::hasWiFiCredentials()
     return (hasSsid && hasPass) ? true : false;
 }
 
+String NvsManager::getWiFiSsid()
+{
+    prefs.begin(NAMESPACE, true);
+    String ssid = prefs.getString(KEY_SSID, "");
+    return ssid;
+}
+
 void NvsManager::clearWiFiConfig()
 {
     prefs.begin(NAMESPACE, false);
