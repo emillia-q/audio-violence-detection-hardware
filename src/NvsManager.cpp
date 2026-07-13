@@ -7,10 +7,6 @@ const char* NvsManager::KEY_PASS = "wifi_pass";
 const char* NvsManager::KEY_SECRET = "dev_secret";
 const char* NvsManager::KEY_ACTIVATED = "activated";
 
-NvsManager::NvsManager()
-{
-}
-
 bool NvsManager::begin()
 {
     bool success = prefs.begin(NAMESPACE, false);
@@ -31,4 +27,12 @@ bool NvsManager::hasDeviceSecret()
     bool exists = prefs.isKey(KEY_SECRET);
     prefs.end();
     return exists;
+}
+
+String NvsManager::getDeviceSecret()
+{
+    prefs.begin(NAMESPACE, true);
+    String keySecret = prefs.getString(KEY_SECRET, "");
+    prefs.end();
+    return keySecret;
 }

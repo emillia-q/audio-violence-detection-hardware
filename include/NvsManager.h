@@ -15,4 +15,5 @@ public:
     static bool begin();
     static void saveDeviceSecret(const String& secret);
     static bool hasDeviceSecret();
+    static String getDeviceSecret();
 };
