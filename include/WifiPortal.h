@@ -22,4 +22,5 @@ class WifiPortal {
     static void handleNotFound();
 public:
     static void startConfigurationMode();
+    static void handleClient();
 };

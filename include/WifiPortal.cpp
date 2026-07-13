@@ -26,6 +26,8 @@ void WifiPortal::handleSave()
         // Save wifi config to NVS
         NvsManager::saveWiFiCredentials(receivedSsid, receivedPass);
         NvsManager::saveUserEmail(receivedEmail);
+        // Credentials updated- device needs to re-register with the backend on next boot
+        NvsManager::setActivated(false);
 
         // Wait & restart esp
         delay(2000);
@@ -61,4 +63,10 @@ void WifiPortal::startConfigurationMode()
 
     // Start the server
     server.begin();
+}
+
+void WifiPortal::handleClient()
+{
+    dnsServer.processNextRequest();
+    server.handleClient();
 }
