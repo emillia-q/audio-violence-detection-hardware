@@ -25,6 +25,7 @@ void WifiPortal::handleSave()
 
         // Save wifi config to NVS
         NvsManager::saveWiFiCredentials(receivedSsid, receivedPass);
+        NvsManager::saveUserEmail(receivedEmail);
 
         // Wait & restart esp
         delay(2000);
