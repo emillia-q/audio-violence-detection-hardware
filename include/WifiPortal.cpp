@@ -17,6 +17,9 @@ void WifiPortal::handleSave()
 
 void WifiPortal::handleNotFound()
 {
+    // Intercepts queries & redirect to home page
+    server.sendHeader("Location", String("http://") + WiFi.softAPIP().toString() + "/", true);
+    server.send(302, "text/plain", "");
 }
 
 void WifiPortal::startConfigurationMode()
