@@ -2,11 +2,13 @@
 
 #include<Arduino.h>
 #include<WebServer.h>
+#include<DNSServer.h>
 #include"secret.h"
 
 class WifiPortal {
-    // www server, listens on the standard HTTP port
+    // HTTP server & DNS server on domain ports
     static WebServer server;
+    static DNSServer dnsServer;
 
     // Received from the html form
     static const char* PARAM_SSID;
@@ -15,6 +17,7 @@ class WifiPortal {
 
     static void handleRoot();
     static void handleSave();
+    static void handleNotFound();
 public:
     static void startConfigurationMode();
 };
