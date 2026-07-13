@@ -4,6 +4,7 @@
 #include<WebServer.h>
 #include<DNSServer.h>
 #include"secret.h"
+#include"HtmlPages.h"
 
 class WifiPortal {
     // HTTP server & DNS server on domain ports

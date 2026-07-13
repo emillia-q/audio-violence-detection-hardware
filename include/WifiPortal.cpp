@@ -8,6 +8,7 @@ const char* WifiPortal::PARAM_EMAIL = "email";
 
 void WifiPortal::handleRoot()
 {
+    server.send(200, "text/html", SETUP_HTML);
 }
 
 void WifiPortal::handleSave()
