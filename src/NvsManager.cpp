@@ -66,9 +66,9 @@ String NvsManager::getWiFiSsid()
 String NvsManager::getWiFiPass()
 {
     prefs.begin(NAMESPACE, true);
-    String ssid = prefs.getString(KEY_PASS, "");
+    String pass = prefs.getString(KEY_PASS, "");
     prefs.end();
-    return ssid;
+    return pass;
 }
 
 void NvsManager::clearWiFiConfig()
