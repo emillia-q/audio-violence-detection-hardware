@@ -13,6 +13,25 @@ void WifiPortal::handleRoot()
 
 void WifiPortal::handleSave()
 {
+    // Check if form fields came in request
+    if (server.hasArg(PARAM_SSID) && server.hasArg(PARAM_PASS) && server.hasArg(PARAM_EMAIL)) {
+        // Extract values
+        String receivedSsid = server.arg(PARAM_SSID);
+        String receivedPass = server.arg(PARAM_PASS);
+        String receivedEmail = server.arg(PARAM_EMAIL);
+
+        // Send success page
+        server.send(200, "text/html", SUCCESS_HTML);
+
+        // Save wifi config to NVS
+        NvsManager::saveWiFiCredentials(receivedSsid, receivedPass);
+
+        // Wait & restart esp
+        delay(2000);
+        ESP.restart();
+    } else {
+        server.send(400, "text/plain", "Bad Request: Missing form fields");
+    }
 }
 
 void WifiPortal::handleNotFound()
