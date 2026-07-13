@@ -31,6 +31,14 @@ EXT_RAM_ATTR float modelFeaturesBuffer[feature_count]; // Ready features for CNN
 void setup() {
   Serial.begin(115200);
 
+  // NVS configuration
+  if (!NvsManager::begin()) {
+    Serial.println("NVS Error");
+    while (1);
+  }
+  if (!NvsManager::hasDeviceSecret)
+    NvsManager::saveDeviceSecret(DEVICE_SECRET);
+
   // Mic init
   if(mic.begin())
     Serial.println("INMP441 initialized successfully.");
