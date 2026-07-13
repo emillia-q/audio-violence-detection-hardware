@@ -12,6 +12,6 @@ class NvsManager {
     static const char* KEY_SECRET;
     static const char* KEY_ACTIVATED;
 public:
-    static void init();
-
+    static bool begin();
+    static void saveDeviceSecret(const String& secret);
 };

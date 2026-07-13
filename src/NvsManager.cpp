@@ -11,8 +11,16 @@ NvsManager::NvsManager()
 {
 }
 
-void NvsManager::init()
+bool NvsManager::begin()
+{
+    bool success = prefs.begin(NAMESPACE, false);
+    prefs.end();
+    return success;
+}
+
+void NvsManager::saveDeviceSecret(const String &secret)
 {
     prefs.begin(NAMESPACE, false);
+    prefs.putString(KEY_SECRET, secret);
     prefs.end();
 }
