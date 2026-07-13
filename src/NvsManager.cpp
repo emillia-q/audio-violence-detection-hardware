@@ -45,6 +45,15 @@ void NvsManager::saveWiFiCredentials(const String &ssid, const String &pass)
     prefs.end();
 }
 
+bool NvsManager::hasWiFiCredentials()
+{
+    prefs.begin(NAMESPACE, true);
+    bool hasSsid = prefs.isKey(KEY_SSID);
+    bool hasPass = prefs.isKey(KEY_PASS);
+    prefs.end();
+    return (hasSsid && hasPass) ? true : false;
+}
+
 void NvsManager::clearWiFiConfig()
 {
     prefs.begin(NAMESPACE, false);
