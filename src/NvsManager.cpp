@@ -36,3 +36,11 @@ String NvsManager::getDeviceSecret()
     prefs.end();
     return keySecret;
 }
+
+void NvsManager::saveWiFiCredentials(const String &ssid, const String &pass)
+{
+    prefs.begin(NAMESPACE, false);
+    prefs.putString(KEY_SSID, ssid);
+    prefs.putString(KEY_PASS, pass);
+    prefs.end();
+}

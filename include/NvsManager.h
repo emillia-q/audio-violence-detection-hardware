@@ -13,7 +13,12 @@ class NvsManager {
     static const char* KEY_ACTIVATED;
 public:
     static bool begin();
+
+    // Device Secret
     static void saveDeviceSecret(const String& secret);
     static bool hasDeviceSecret();
     static String getDeviceSecret();
+
+    // WiFi
+    static void saveWiFiCredentials(const String& ssid, const String& pass);
 };
