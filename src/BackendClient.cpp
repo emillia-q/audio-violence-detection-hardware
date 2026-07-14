@@ -16,6 +16,11 @@ bool BackendClient::activateDevice()
     String deviceSecret = NvsManager::getDeviceSecret();
     String email = NvsManager::getUserEmail();
 
+    if (email.length() == 0) {
+        Serial.println("No email saved in NVS");
+        return false;
+    }
+
     HTTPClient http;
     http.begin(activateUrl);
     http.addHeader("Content-Type", "application/json");
