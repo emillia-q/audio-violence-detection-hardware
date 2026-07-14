@@ -66,5 +66,6 @@ bool BackendClient::activateDevice()
         Serial.print("Connection failed! Error code: ");
         Serial.println(http.errorToString(httpResponseCode).c_str());
     }
+    http.end();
     return success;
 }
