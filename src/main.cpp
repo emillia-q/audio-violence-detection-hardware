@@ -53,14 +53,14 @@ void setup() {
   } else {
      // Check if device is already active & assigned to a user in database
     if (!NvsManager::isActivated()) {
-        while (!WifiPortal::connectToSavedWifi()) {
-          Serial.println("Trying to connect again");
-        }
+      while (!WifiPortal::connectToSavedWifi()) {
+        Serial.println("Trying to connect again");
+      }
 
-        if (!BackendClient::activateDevice()) {
-          Serial.println("Device activation failed");
-          while (1);
-        }
+      if (!BackendClient::activateDevice()) {
+        Serial.println("Device activation failed");
+        while (1);
+      }
     }
 
     // Wifi credentials saved & device assigned to a user
