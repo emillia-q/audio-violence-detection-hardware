@@ -21,6 +21,10 @@ class WifiPortal {
     static void handleSave();
     static void handleNotFound();
 public:
+    // Hotspot
     static void startConfigurationMode();
     static void handleClient();
+
+    // WiFi
+    static bool connectToSavedWifi();
 };

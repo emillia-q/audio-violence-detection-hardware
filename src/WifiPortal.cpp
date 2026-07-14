@@ -70,3 +70,11 @@ void WifiPortal::handleClient()
     dnsServer.processNextRequest();
     server.handleClient();
 }
+
+bool WifiPortal::connectToSavedWifi()
+{
+    String ssid = NvsManager::getWiFiSsid();
+    String pass = NvsManager::getWiFiPass();
+
+    
+}
