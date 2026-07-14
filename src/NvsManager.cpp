@@ -98,6 +98,7 @@ String NvsManager::getUserEmail()
 {
     prefs.begin(NAMESPACE, true);
     String email = prefs.getString(KEY_EMAIL, "");
+    prefs.end();
     return email;
 }
 

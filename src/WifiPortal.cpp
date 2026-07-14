@@ -70,3 +70,36 @@ void WifiPortal::handleClient()
     dnsServer.processNextRequest();
     server.handleClient();
 }
+
+bool WifiPortal::connectToSavedWifi()
+{
+    String ssid = NvsManager::getWiFiSsid();
+    String pass = NvsManager::getWiFiPass();
+
+    if (ssid.length() == 0) {
+        Serial.println("No SSID saved in NVS");
+        return false;
+    }
+
+    // Turn off AP mode & connect as client
+    WiFi.mode(WIFI_STA);
+    WiFi.begin(ssid.c_str(), pass.c_str());
+
+    Serial.print("Connecting to: ");
+    Serial.println(ssid);
+    // Wait for connection (max 15s)
+    int attempts = 0;
+    while (WiFi.status() != WL_CONNECTED && attempts < 30) {
+        delay(500);
+        Serial.print(".");
+        attempts++;
+    }
+
+    if (WiFi.status() == WL_CONNECTED) {
+        Serial.println("\nConnected successfully");
+        return true;
+    } else {
+        Serial.println("\nConnection timeout");
+        return false;
+    }
+}

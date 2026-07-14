@@ -6,6 +6,7 @@
 #include"secret.h"
 #include"NvsManager.h"
 #include"WifiPortal.h"
+#include"BackendClient.h"
 
 // Pin configuration
 
@@ -49,30 +50,43 @@ void setup() {
   if (!NvsManager::hasWiFiCredentials() || !NvsManager::hasUserEmail()) {
     isConfigMode = true;
     WifiPortal::startConfigurationMode();
-  }
+  } else {
+     // Check if device is already active & assigned to a user in database
+    if (!NvsManager::isActivated()) {
+      while (!WifiPortal::connectToSavedWifi()) {
+        Serial.println("Trying to connect again");
+      }
 
-  // Mic init
-  if(mic.begin())
-    Serial.println("INMP441 initialized successfully.");
-  else {
-    Serial.println("Failed to configure INMP441!");
-    while(1);
-  }
+      if (!BackendClient::activateDevice()) {
+        Serial.println("Device activation failed");
+        while (1);
+      }
+    }
 
-  // ESP-DSP MFCC init
-  if(mfccExtr.begin())
-    Serial.println("MFCC DSP Engine initialized successfully.");
-  else {
-    Serial.println("Failed to allocate memory for MFCC!");
-    while(1);
-  }
+    // Wifi credentials saved & device assigned to a user
+    // Mic init
+    if(mic.begin())
+      Serial.println("INMP441 initialized successfully");
+    else {
+      Serial.println("Failed to configure INMP441");
+      while(1);
+    }
 
-  // CNN model init
-  if(cnnModel.begin())
-    Serial.println("CNN Model loaded successfully.");
-  else {
-    Serial.println("Failed to load CNN model!");
-    while(1);
+    // ESP-DSP MFCC init
+    if(mfccExtr.begin())
+      Serial.println("MFCC DSP Engine initialized successfully");
+    else {
+      Serial.println("Failed to allocate memory for MFCC");
+      while(1);
+    }
+
+    // CNN model init
+    if(cnnModel.begin())
+      Serial.println("CNN Model loaded successfully.");
+    else {
+      Serial.println("Failed to load CNN model!");
+      while(1);
+    }
   }
 }
 
