@@ -1,6 +1,8 @@
 #pragma once
 
 #include<WiFi.h>
+#include<HTTPClient.h>
+#include"NvsManager.h"
 #include"secret.h"
 
 class BackendClient {
@@ -8,4 +10,5 @@ class BackendClient {
     static const char* ACTIVATE_URL;
 
 public:
+    static bool activateDevice();
 };
