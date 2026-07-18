@@ -3,6 +3,7 @@
 const char* BackendClient::BASE_URL = BACKEND_BASE_URL;
 const char* BackendClient::ACTIVATE_URL = BACKEND_ACTIVATE_DEVICE_URL;
 const char* BackendClient::AUTH_URL = BACKEND_AUTH_DEVICE_URL;
+const char* BackendClient::SEND_ALERT_URL = BACKEND_SEND_ALERT_URL;
 
 bool BackendClient::activateDevice()
 {
@@ -130,4 +131,9 @@ bool BackendClient::authenticateDevice()
     }
     http.end();
     return success;
+}
+
+bool BackendClient::sendAlert()
+{
+    return false;
 }
