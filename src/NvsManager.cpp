@@ -7,6 +7,7 @@ const char* NvsManager::KEY_PASS = "wifi_pass";
 const char* NvsManager::KEY_EMAIL = "user_email";
 const char* NvsManager::KEY_SECRET = "dev_secret";
 const char* NvsManager::KEY_ACTIVATED = "activated";
+const char* NvsManager::KEY_TOKEN = "jwt_token";
 
 bool NvsManager::begin()
 {
@@ -122,4 +123,19 @@ bool NvsManager::isActivated()
     bool activated = prefs.getBool(KEY_ACTIVATED);
     prefs.end();
     return activated;
+}
+
+void NvsManager::saveToken(const String &token)
+{
+    prefs.begin(NAMESPACE, false);
+    prefs.putString(KEY_TOKEN, token);
+    prefs.end();
+}
+
+String NvsManager::getToken()
+{
+    prefs.begin(NAMESPACE, true);
+    String token = prefs.getString(KEY_TOKEN, "");
+    prefs.end();
+    return token;
 }
