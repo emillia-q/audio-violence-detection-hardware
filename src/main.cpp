@@ -32,6 +32,9 @@ EXT_RAM_ATTR float modelFeaturesBuffer[feature_count]; // Ready features for CNN
 
 // Program variables
 bool isConfigMode = false;
+int statusCode = 0;
+bool alertSent = false;
+bool deviceAuthenticated = false;
 
 void setup() {
   Serial.begin(115200);
@@ -111,5 +114,25 @@ void loop() {
 
     // Model prediction
     cnnModel.prediction(modelFeaturesBuffer, feature_count);
+
+    // Check if violence was detected & send alert
+    if (cnnModel.violenceDetected())
+      alertSent = BackendClient::sendAlert(statusCode);
+  }
+
+  // If sending alert was unsuccessful & response status was unauthorized
+  if (statusCode == 401 && !alertSent) {
+    // Authorize & try again
+    deviceAuthenticated = BackendClient::authenticateDevice();
+    alertSent = BackendClient::sendAlert(statusCode);
+  }
+
+  // Other backend troubles
+  if (!deviceAuthenticated && !alertSent) {
+    // TODO: invalid request payload or troubles with authorization
+  }
+
+  if (deviceAuthenticated && !alertSent) {
+    // TODO: wrong token format, wrong role, device or user not found -> display it to the user
   }
 }
