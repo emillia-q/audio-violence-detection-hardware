@@ -135,5 +135,52 @@ bool BackendClient::authenticateDevice()
 
 bool BackendClient::sendAlert()
 {
-    return false;
+    // Create full url & auth header string
+    String activateUrl = String(BASE_URL) + String(SEND_ALERT_URL);
+    String jwtToken = NvsManager::getToken();
+    String authHeader = "Bearer " + jwtToken;
+
+    HTTPClient http;
+    http.begin(activateUrl);
+    http.addHeader("Content-Type", "application/json");
+    http.addHeader("Authorization", authHeader.c_str());
+
+    int httpResponseCode = http.POST(""); // Empty request
+    bool success = false;
+
+    if (httpResponseCode > 0) {
+        switch (httpResponseCode) {
+            case 204: {
+                Serial.println("204: Alert sent successfully");
+                success = true;
+            } break;
+                
+            case 401:
+                Serial.println("401: Unauthorized: token possibly expired");
+                break;
+                
+            case 403:
+                Serial.println("403: Forbidden: Required role 'DEVICE' is missing");
+                break;
+
+            case 404:
+                Serial.println("404: Device not found");
+                break;
+            
+            case 422:
+                Serial.println("422: User not assigned to the device");
+                break;
+                
+            default:
+                Serial.print("Unexpected status code: ");
+                Serial.println(httpResponseCode);
+                break;
+        }
+    } else {
+        // Physical error
+        Serial.print("Connection failed! Error code: ");
+        Serial.println(http.errorToString(httpResponseCode).c_str());
+    }
+    http.end();
+    return success;
 }
