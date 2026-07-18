@@ -90,7 +90,7 @@ bool BackendClient::authenticateDevice()
 
     if (httpResponseCode > 0) {
         switch (httpResponseCode) {
-            case 200:
+            case 200: {
                 Serial.println("200: Device successfully authenticated");
                 String responseBody = http.getString();
                 String jwtToken = "";
@@ -108,7 +108,7 @@ bool BackendClient::authenticateDevice()
                 }
                 NvsManager::saveToken(jwtToken);
                 success = true;
-                break;
+            } break;
                 
             case 400:
                 Serial.println("400: Invalid request payload or validation failed");
