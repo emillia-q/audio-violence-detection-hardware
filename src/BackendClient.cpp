@@ -133,7 +133,7 @@ bool BackendClient::authenticateDevice()
     return success;
 }
 
-bool BackendClient::sendAlert()
+bool BackendClient::sendAlert(int& statusCode)
 {
     // Create full url & auth header string
     String activateUrl = String(BASE_URL) + String(SEND_ALERT_URL);
@@ -146,6 +146,7 @@ bool BackendClient::sendAlert()
     http.addHeader("Authorization", authHeader.c_str());
 
     int httpResponseCode = http.POST(""); // Empty request
+    statusCode = httpResponseCode;
     bool success = false;
 
     if (httpResponseCode > 0) {
