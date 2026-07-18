@@ -54,12 +54,12 @@ void setup() {
     isConfigMode = true;
     WifiPortal::startConfigurationMode();
   } else {
+    // Connect to WiFi
+    while (!WifiPortal::connectToSavedWifi()) 
+        Serial.println("Trying to connect again");
+        
      // Check if device is already active & assigned to a user in database
     if (!NvsManager::isActivated()) {
-      while (!WifiPortal::connectToSavedWifi()) {
-        Serial.println("Trying to connect again");
-      }
-
       if (!BackendClient::activateDevice()) {
         Serial.println("Device activation failed");
         while (1);
