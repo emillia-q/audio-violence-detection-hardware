@@ -12,6 +12,7 @@ class NvsManager {
     static const char* KEY_EMAIL;
     static const char* KEY_SECRET;
     static const char* KEY_ACTIVATED;
+    static const char* KEY_TOKEN;
 public:
     static bool begin();
 
@@ -36,4 +37,7 @@ public:
     // Activation
     static void setActivated(bool status);
     static bool isActivated();
+
+    // JWT token
+    static void saveToken(const String& token);
 };
