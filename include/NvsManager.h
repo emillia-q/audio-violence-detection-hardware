@@ -40,4 +40,5 @@ public:
 
     // JWT token
     static void saveToken(const String& token);
+    static String getToken();
 };

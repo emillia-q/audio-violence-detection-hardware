@@ -131,3 +131,11 @@ void NvsManager::saveToken(const String &token)
     prefs.putString(KEY_TOKEN, token);
     prefs.end();
 }
+
+String NvsManager::getToken()
+{
+    prefs.begin(NAMESPACE, true);
+    String token = prefs.getString(KEY_TOKEN, "");
+    prefs.end();
+    return token;
+}
