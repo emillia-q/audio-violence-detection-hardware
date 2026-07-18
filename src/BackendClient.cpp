@@ -92,7 +92,20 @@ bool BackendClient::authenticateDevice()
         switch (httpResponseCode) {
             case 200:
                 Serial.println("200: Device successfully authenticated");
-                
+                String responseBody = http.getString();
+                String jwtToken = "";
+
+                // Trim token
+                int tokenKeyIdx = responseBody.indexOf("\"token\":\"");
+                if (tokenKeyIdx != -1) {
+                    int startPos = tokenKeyIdx + 9;
+                    int endPos = responseBody.indexOf("\"", startPos); // Closing quotation
+
+                    if (endPos != -1) {
+                        jwtToken = responseBody.substring(startPos, endPos);
+                        jwtToken.trim();
+                    }
+                }
                 success = true;
                 break;
                 
