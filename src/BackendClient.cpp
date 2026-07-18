@@ -106,6 +106,7 @@ bool BackendClient::authenticateDevice()
                         jwtToken.trim();
                     }
                 }
+                NvsManager::saveToken(jwtToken);
                 success = true;
                 break;
                 
