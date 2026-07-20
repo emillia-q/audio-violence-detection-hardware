@@ -14,5 +14,5 @@ class BackendClient {
 public:
     static bool activateDevice();
     static bool authenticateDevice();
-    static bool sendAlert();
+    static bool sendAlert(int& statusCode);
 };

@@ -97,18 +97,25 @@ bool BackendClient::authenticateDevice()
                 String jwtToken = "";
 
                 // Trim token
-                int tokenKeyIdx = responseBody.indexOf("\"token\":\"");
+                int tokenKeyIdx = responseBody.indexOf("\"token\"");
                 if (tokenKeyIdx != -1) {
-                    int startPos = tokenKeyIdx + 9;
-                    int endPos = responseBody.indexOf("\"", startPos); // Closing quotation
+                    int startPos = responseBody.indexOf("\"", tokenKeyIdx + 7); // 1st quotation after word "token"
+                    
 
-                    if (endPos != -1) {
-                        jwtToken = responseBody.substring(startPos, endPos);
-                        jwtToken.trim();
+                    if (startPos != -1) {
+                        startPos = startPos + 1; // Skip opening token quotation
+                        int endPos = responseBody.indexOf("\"", startPos); // Closing quotation
+
+                        if (endPos != -1) {
+                            jwtToken = responseBody.substring(startPos, endPos);
+                            jwtToken.trim();
+
+                            // Save token
+                            NvsManager::saveToken(jwtToken);
+                            success = true;
+                        }
                     }
                 }
-                NvsManager::saveToken(jwtToken);
-                success = true;
             } break;
                 
             case 400:
@@ -133,7 +140,7 @@ bool BackendClient::authenticateDevice()
     return success;
 }
 
-bool BackendClient::sendAlert()
+bool BackendClient::sendAlert(int& statusCode)
 {
     // Create full url & auth header string
     String activateUrl = String(BASE_URL) + String(SEND_ALERT_URL);
@@ -146,6 +153,7 @@ bool BackendClient::sendAlert()
     http.addHeader("Authorization", authHeader.c_str());
 
     int httpResponseCode = http.POST(""); // Empty request
+    statusCode = httpResponseCode;
     bool success = false;
 
     if (httpResponseCode > 0) {

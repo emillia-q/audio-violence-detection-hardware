@@ -74,3 +74,15 @@ void CnnModel::prediction(const float* modelFeaturesBuffer, size_t feature_count
 
     Serial.println("-----------------------------");
 }
+
+bool CnnModel::violenceDetected()
+{
+    float ambient = model_output->data.f[0];
+    float speech = model_output->data.f[1];
+    float violence = model_output->data.f[2];
+
+    bool isHighest = (violence > speech) && (violence > ambient);
+    bool isConfident = violence >= VIOLENCE_THRESHOLD;
+
+    return isHighest && isConfident;
+}

@@ -24,10 +24,13 @@ class CnnModel {
     tflite::AllOpsResolver resolver;
     tflite::MicroErrorReporter micro_error_reporter;
 
+    const float VIOLENCE_THRESHOLD = 0.70f;
+
 public:
     CnnModel();
     ~CnnModel();
 
     bool begin();
     void prediction(const float* modelFeaturesBuffer, size_t feature_count);
+    bool violenceDetected();
 };
