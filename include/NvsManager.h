@@ -9,7 +9,6 @@ class NvsManager {
     static const char* NAMESPACE;
     static const char* KEY_SSID;
     static const char* KEY_PASS;
-    static const char* KEY_EMAIL;
     static const char* KEY_SECRET;
     static const char* KEY_ACTIVATED;
     static const char* KEY_TOKEN;
@@ -27,12 +26,6 @@ public:
     static String getWiFiSsid();
     static String getWiFiPass();
     static void clearWiFiConfig();
-
-    // User email
-    static void saveUserEmail(const String& email);
-    static bool hasUserEmail();
-    static String getUserEmail();
-    static void clearUserEmail();
 
     // Activation
     static void setActivated(bool status);

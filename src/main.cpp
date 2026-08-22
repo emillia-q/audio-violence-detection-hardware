@@ -50,7 +50,7 @@ void setup() {
     NvsManager::saveDeviceSecret(DEVICE_SECRET);
 
   // Then run the hotspot mode
-  if (!NvsManager::hasWiFiCredentials() || !NvsManager::hasUserEmail()) {
+  if (!NvsManager::hasWiFiCredentials()) {
     isConfigMode = true;
     WifiPortal::startConfigurationMode();
   } else {

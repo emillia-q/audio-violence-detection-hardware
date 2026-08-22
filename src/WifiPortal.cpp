@@ -4,7 +4,6 @@ WebServer WifiPortal::server(80);
 DNSServer WifiPortal::dnsServer;
 const char* WifiPortal::PARAM_SSID = "ssid";
 const char* WifiPortal::PARAM_PASS = "password";
-const char* WifiPortal::PARAM_EMAIL = "email";
 
 void WifiPortal::handleRoot()
 {
@@ -14,21 +13,18 @@ void WifiPortal::handleRoot()
 void WifiPortal::handleSave()
 {
     // Check if form fields came in request
-    if (server.hasArg(PARAM_SSID) && server.hasArg(PARAM_PASS) && server.hasArg(PARAM_EMAIL)) {
+    if (server.hasArg(PARAM_SSID) && server.hasArg(PARAM_PASS)) {
         // Extract values
         String receivedSsid = server.arg(PARAM_SSID);
         String receivedPass = server.arg(PARAM_PASS);
-        String receivedEmail = server.arg(PARAM_EMAIL);
 
         // Send success page
         server.send(200, "text/html", SUCCESS_HTML);
 
         // Save wifi config to NVS
         NvsManager::saveWiFiCredentials(receivedSsid, receivedPass);
-        NvsManager::saveUserEmail(receivedEmail);
+        
         // Credentials updated- device needs to re-register with the backend on next boot
-        NvsManager::setActivated(false);
-
         // Wait & restart esp
         delay(2000);
         ESP.restart();

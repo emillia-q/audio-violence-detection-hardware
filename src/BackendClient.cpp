@@ -13,31 +13,24 @@ bool BackendClient::activateDevice()
     }
 
     // Create full url & get data to send
-    String activateUrl = String(BASE_URL) + String(ACTIVATE_URL);
+    String url = String(BASE_URL) + String(ACTIVATE_URL);
     String macAddress = WiFi.macAddress();
     String deviceSecret = NvsManager::getDeviceSecret();
-    String email = NvsManager::getUserEmail();
-
-    if (email.length() == 0) {
-        Serial.println("No email saved in NVS");
-        return false;
-    }
 
     HTTPClient http;
-    http.begin(activateUrl);
+    http.begin(url);
     http.addHeader("Content-Type", "application/json");
 
     // Create json & response code
     String jsonPayload = "{\"macAddress\":\"" + macAddress +
-                            "\",\"deviceSecret\":\"" + deviceSecret + 
-                            "\",\"email\":\"" + email + "\"}";
-    int httpResponseCode = http.POST(jsonPayload);
+                            "\",\"deviceSecret\":\"" + deviceSecret + "\"}";
+    int httpResponseCode = http.PATCH(jsonPayload);
     bool success = false;
 
     if (httpResponseCode > 0) {
         switch (httpResponseCode) {
             case 204:
-                Serial.println("204: Activated and paired an IoT device");
+                Serial.println("204: Activated an IoT device");
                 NvsManager::setActivated(true);
                 success = true;
                 break;
@@ -54,8 +47,8 @@ bool BackendClient::activateDevice()
                 Serial.println("404: Device or user not found");
                 break;
                 
-            case 409: // Shouldn't happen for now
-                Serial.println("409: Conflict, Device is already assigned to a user");
+            case 422:
+                Serial.println("422: Device is not paired with a user");
                 break;
                 
             default:
@@ -75,12 +68,12 @@ bool BackendClient::activateDevice()
 bool BackendClient::authenticateDevice()
 {
     // Create full url & get data to send
-    String activateUrl = String(BASE_URL) + String(AUTH_URL);
+    String url = String(BASE_URL) + String(AUTH_URL);
     String macAddress = WiFi.macAddress();
     String deviceSecret = NvsManager::getDeviceSecret();
 
     HTTPClient http;
-    http.begin(activateUrl);
+    http.begin(url);
     http.addHeader("Content-Type", "application/json");
 
     // Create json & response code
@@ -143,12 +136,12 @@ bool BackendClient::authenticateDevice()
 bool BackendClient::sendAlert(int& statusCode)
 {
     // Create full url & auth header string
-    String activateUrl = String(BASE_URL) + String(SEND_ALERT_URL);
+    String url = String(BASE_URL) + String(SEND_ALERT_URL);
     String jwtToken = NvsManager::getToken();
     String authHeader = "Bearer " + jwtToken;
 
     HTTPClient http;
-    http.begin(activateUrl);
+    http.begin(url);
     http.addHeader("Content-Type", "application/json");
     http.addHeader("Authorization", authHeader.c_str());
 

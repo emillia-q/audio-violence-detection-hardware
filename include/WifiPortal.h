@@ -15,7 +15,6 @@ class WifiPortal {
     // Received from the html form
     static const char* PARAM_SSID;
     static const char* PARAM_PASS;
-    static const char* PARAM_EMAIL;
 
     static void handleRoot();
     static void handleSave();
