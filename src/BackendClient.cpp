@@ -30,7 +30,7 @@ bool BackendClient::activateDevice()
     if (httpResponseCode > 0) {
         switch (httpResponseCode) {
             case 204:
-                Serial.println("204: Activated and paired an IoT device");
+                Serial.println("204: Activated an IoT device");
                 NvsManager::setActivated(true);
                 success = true;
                 break;
@@ -47,8 +47,8 @@ bool BackendClient::activateDevice()
                 Serial.println("404: Device or user not found");
                 break;
                 
-            case 409: // Shouldn't happen for now
-                Serial.println("409: Conflict, Device is already assigned to a user");
+            case 422:
+                Serial.println("422: Device is not paired with a user");
                 break;
                 
             default:
