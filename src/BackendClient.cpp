@@ -24,7 +24,7 @@ bool BackendClient::activateDevice()
     // Create json & response code
     String jsonPayload = "{\"macAddress\":\"" + macAddress +
                             "\",\"deviceSecret\":\"" + deviceSecret + "\"}";
-    int httpResponseCode = http.POST(jsonPayload);
+    int httpResponseCode = http.PATCH(jsonPayload);
     bool success = false;
 
     if (httpResponseCode > 0) {
