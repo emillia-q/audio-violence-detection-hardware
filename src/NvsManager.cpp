@@ -4,7 +4,6 @@ Preferences NvsManager::prefs;
 const char* NvsManager::NAMESPACE = "device_cfg";
 const char* NvsManager::KEY_SSID = "wifi_ssid";
 const char* NvsManager::KEY_PASS = "wifi_pass";
-const char* NvsManager::KEY_EMAIL = "user_email";
 const char* NvsManager::KEY_SECRET = "dev_secret";
 const char* NvsManager::KEY_ACTIVATED = "activated";
 const char* NvsManager::KEY_TOKEN = "jwt_token";
@@ -77,36 +76,6 @@ void NvsManager::clearWiFiConfig()
     prefs.begin(NAMESPACE, false);
     prefs.remove(KEY_SSID);
     prefs.remove(KEY_PASS);
-    prefs.end();
-}
-
-void NvsManager::saveUserEmail(const String &email)
-{
-    prefs.begin(NAMESPACE, false);
-    prefs.putString(KEY_EMAIL, email);
-    prefs.end();
-}
-
-bool NvsManager::hasUserEmail()
-{
-    prefs.begin(NAMESPACE, true);
-    bool exists = prefs.isKey(KEY_EMAIL);
-    prefs.end();
-    return exists;
-}
-
-String NvsManager::getUserEmail()
-{
-    prefs.begin(NAMESPACE, true);
-    String email = prefs.getString(KEY_EMAIL, "");
-    prefs.end();
-    return email;
-}
-
-void NvsManager::clearUserEmail()
-{
-    prefs.begin(NAMESPACE, false);
-    prefs.remove(KEY_EMAIL);
     prefs.end();
 }
 
