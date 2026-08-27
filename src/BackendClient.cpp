@@ -169,7 +169,7 @@ bool BackendClient::sendAlert(int& statusCode)
                 break;
             
             case 422:
-                Serial.println("422: User not assigned to the device");
+                Serial.println("422: Device is disconnected or not activated");
                 break;
                 
             default:
