@@ -9,7 +9,7 @@ void BackendClient::deactivateDevice()
 {
     NvsManager::setActivated(false);
     NvsManager::clearWiFiConfig();
-    
+
     // Wait & restart esp
         delay(2000);
         ESP.restart();
@@ -55,6 +55,7 @@ bool BackendClient::activateDevice()
                 
             case 422:
                 Serial.println("422: Device is not paired with a user");
+                deactivateDevice();
                 break;
                 
             default:
@@ -127,6 +128,7 @@ bool BackendClient::authenticateDevice()
 
             case 422:
                 Serial.println("422: Device is disconnected or not activated");
+                deactivateDevice();
                 break;
                 
             default:
@@ -180,6 +182,7 @@ bool BackendClient::sendAlert(int& statusCode)
             
             case 422:
                 Serial.println("422: Device is disconnected or not activated");
+                deactivateDevice();
                 break;
                 
             default:
