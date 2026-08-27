@@ -9,6 +9,7 @@ void BackendClient::deactivateDevice()
 {
     NvsManager::setActivated(false);
     NvsManager::clearWiFiConfig();
+    NvsManager::saveToken("");
 
     // Wait & restart esp
         delay(2000);
