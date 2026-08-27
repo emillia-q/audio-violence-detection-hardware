@@ -5,6 +5,16 @@ const char* BackendClient::ACTIVATE_URL = BACKEND_ACTIVATE_DEVICE_URL;
 const char* BackendClient::AUTH_URL = BACKEND_AUTH_DEVICE_URL;
 const char* BackendClient::SEND_ALERT_URL = BACKEND_SEND_ALERT_URL;
 
+void BackendClient::deactivateDevice()
+{
+    NvsManager::setActivated(false);
+    NvsManager::clearWiFiConfig();
+    
+    // Wait & restart esp
+        delay(2000);
+        ESP.restart();
+}
+
 bool BackendClient::activateDevice()
 {
     if (WiFi.status() != WL_CONNECTED) {
