@@ -112,7 +112,11 @@ bool BackendClient::authenticateDevice()
                 break;
                 
             case 401:
-                Serial.println("401: Unauthorized, Invalid MAC address or device secret key");
+                Serial.println("401: Unauthorized, Invalid device credentials");
+                break;
+
+            case 422:
+                Serial.println("422: Device is disconnected or not activated");
                 break;
                 
             default:
