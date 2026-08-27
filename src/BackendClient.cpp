@@ -40,11 +40,7 @@ bool BackendClient::activateDevice()
                 break;
                 
             case 401:
-                Serial.println("401: Unauthorized, Invalid device secret");
-                break;
-                
-            case 404:
-                Serial.println("404: Device or user not found");
+                Serial.println("401: Unauthorized, Invalid device credentials");
                 break;
                 
             case 422:
