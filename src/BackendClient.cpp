@@ -5,6 +5,17 @@ const char* BackendClient::ACTIVATE_URL = BACKEND_ACTIVATE_DEVICE_URL;
 const char* BackendClient::AUTH_URL = BACKEND_AUTH_DEVICE_URL;
 const char* BackendClient::SEND_ALERT_URL = BACKEND_SEND_ALERT_URL;
 
+void BackendClient::deactivateDevice()
+{
+    NvsManager::setActivated(false);
+    NvsManager::clearWiFiConfig();
+    NvsManager::saveToken("");
+
+    // Wait & restart esp
+        delay(2000);
+        ESP.restart();
+}
+
 bool BackendClient::activateDevice()
 {
     if (WiFi.status() != WL_CONNECTED) {
@@ -40,15 +51,12 @@ bool BackendClient::activateDevice()
                 break;
                 
             case 401:
-                Serial.println("401: Unauthorized, Invalid device secret");
-                break;
-                
-            case 404:
-                Serial.println("404: Device or user not found");
+                Serial.println("401: Unauthorized, Invalid device credentials");
                 break;
                 
             case 422:
                 Serial.println("422: Device is not paired with a user");
+                deactivateDevice();
                 break;
                 
             default:
@@ -116,7 +124,12 @@ bool BackendClient::authenticateDevice()
                 break;
                 
             case 401:
-                Serial.println("401: Unauthorized, Invalid MAC address or device secret key");
+                Serial.println("401: Unauthorized, Invalid device credentials");
+                break;
+
+            case 422:
+                Serial.println("422: Device is disconnected or not activated");
+                deactivateDevice();
                 break;
                 
             default:
@@ -169,7 +182,8 @@ bool BackendClient::sendAlert(int& statusCode)
                 break;
             
             case 422:
-                Serial.println("422: User not assigned to the device");
+                Serial.println("422: Device is disconnected or not activated");
+                deactivateDevice();
                 break;
                 
             default:
