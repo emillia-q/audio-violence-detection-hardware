@@ -18,4 +18,5 @@ private:
 
 public:
     Button(int buttonPin);
+    ButtonEvent getEvent();
 };
