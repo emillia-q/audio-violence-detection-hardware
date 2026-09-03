@@ -10,6 +10,9 @@
 
 // Pin configuration
 
+// RED LED
+#define RED_LED 10
+
 // INMP441
 #define MIC_WS   15         // Word Select
 #define MIC_SD   13         // Serial Data
