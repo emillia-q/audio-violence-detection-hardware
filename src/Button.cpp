@@ -34,8 +34,12 @@ ButtonEvent Button::getEvent()
     if (!currentState && isPressed) {
         isPressed = false;
         
-        if (!longPressHandeled) 
+        unsigned long pressDuration = millis() - pressTime;
+        
+        // Debouncing
+        if (!longPressHandeled && pressDuration >= 50) {
             return SHORT_CLICK;
+        }
     }
 
     return NONE;
