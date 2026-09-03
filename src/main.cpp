@@ -13,6 +13,9 @@
 // RED LED
 #define RED_LED 10
 
+// Button
+#define BUTTON_PIN 8
+
 // INMP441
 #define MIC_WS   15         // Word Select
 #define MIC_SD   13         // Serial Data
