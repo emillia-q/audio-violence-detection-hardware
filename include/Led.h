@@ -14,4 +14,6 @@ class Led
 
 public:
     Led(int ledPin);
+
+    void errorMessage(ErrorCode errorCode);
 };
