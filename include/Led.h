@@ -12,6 +12,7 @@ enum ErrorCode {
 class Led
 {
     int _ledPin;
+    ErrorCode currentError;
 
     // Individual error codes
     void hardwareErrorMessage();

@@ -4,6 +4,8 @@ Led::Led(int ledPin)
 {
     _ledPin = ledPin;
     pinMode(_ledPin, OUTPUT);
+    digitalWrite(_ledPin, LOW);
+    currentError = NONE;
 }
 
 void Led::hardwareErrorMessage()
