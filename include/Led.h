@@ -13,9 +13,11 @@ class Led
 {
     int _ledPin;
     ErrorCode currentError;
-
-    // Individual error codes
-    void hardwareErrorMessage();
+    unsigned long interval;
+    unsigned long previousMillis;
+    bool ledState;
+    int toggleCount;
+    int maxToggles;
 
 public:
     Led(int ledPin);

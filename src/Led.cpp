@@ -8,13 +8,28 @@ Led::Led(int ledPin)
     currentError = NONE;
 }
 
-void Led::hardwareErrorMessage()
-{
-    digitalWrite(_ledPin, HIGH);
-}
-
 void Led::errorMessage(ErrorCode errorCode)
 {
-    if (errorCode == HARDWARE_ERROR)
-        hardwareErrorMessage();
+    // Prevents overriding currently displayed error
+    if (currentError != NONE) 
+        return;
+
+    currentError = errorCode;
+    previousMillis = millis();
+
+    // Start with led on
+    ledState = HIGH;
+    digitalWrite(_ledPin, ledState);
+    toggleCount = 1;
+
+    if (errorCode == HARDWARE_ERROR) {
+        maxToggles = 2;
+        interval = 2000;
+    } else if (errorCode == WIFI_ERROR) {
+        maxToggles = 4;
+        interval = 250;
+    } else if (errorCode == HTTP_ERROR) {
+        maxToggles = 6;
+        interval = 250;
+    }
 }
