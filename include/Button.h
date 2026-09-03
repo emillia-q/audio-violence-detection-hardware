@@ -1,5 +1,7 @@
 # pragma once
 
+#include <Arduino.h>
+
 enum ButtonEvent {
     NONE,
     SHORT_CLICK,
@@ -10,6 +12,10 @@ class Button
 {
 private:
     int _buttonPin;
+    unsigned long pressTime;
+    bool isPressed;
+    bool longPressHandeled;
+
 public:
     Button(int buttonPin);
 };
