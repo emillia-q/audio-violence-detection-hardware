@@ -12,6 +12,9 @@ class Led
 {
     int _ledPin;
 
+    // Individual error codes
+    void hardwareErrorMessage();
+
 public:
     Led(int ledPin);
 
