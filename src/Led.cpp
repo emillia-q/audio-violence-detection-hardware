@@ -33,3 +33,23 @@ void Led::errorMessage(ErrorCode errorCode)
         interval = 250;
     }
 }
+
+void Led::update()
+{
+    if (currentError == NONE)
+        return;
+
+    if (millis() - previousMillis >= interval) {
+        previousMillis = millis();
+
+        if (toggleCount < maxToggles) {
+            ledState = !ledState; // Toggle state
+            digitalWrite(_ledPin, ledState);
+            toggleCount++;
+        } else {
+            // Reached the limit
+            digitalWrite(_ledPin, LOW);
+            currentError = NONE;
+        }
+    }
+}

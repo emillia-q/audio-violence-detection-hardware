@@ -23,4 +23,5 @@ public:
     Led(int ledPin);
 
     void errorMessage(ErrorCode errorCode);
+    void update();
 };
