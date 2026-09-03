@@ -3,6 +3,7 @@
 #include <Arduino.h>
 
 enum ErrorCode {
+    NONE,
     HARDWARE_ERROR,
     WIFI_ERROR,
     HTTP_ERROR
