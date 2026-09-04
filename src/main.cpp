@@ -7,6 +7,8 @@
 #include"NvsManager.h"
 #include"WifiPortal.h"
 #include"BackendClient.h"
+#include "Led.h"
+#include "Button.h"
 
 // Pin configuration
 
@@ -31,6 +33,10 @@ Inmp441 mic(MIC_WS, MIC_SD, MIC_SCK, I2S_PORT);
 AudioBuffer audioBuffer;
 MfccExtractor mfccExtr;
 CnnModel cnnModel;
+ErrorCode currentError = ErrorCode::NONE;
+Led led(RED_LED);
+ButtonEvent buttonEvent = ButtonEvent::NONE;
+Button button(BUTTON_PIN);
 
 // Global buffers (allocated in external PSRAM)
 EXT_RAM_ATTR float modelInputBuffer[32000];
@@ -48,7 +54,7 @@ void setup() {
   // NVS configuration
   if (!NvsManager::begin()) {
     Serial.println("NVS Error");
-    while (1);
+    currentError = ErrorCode::HARDWARE_ERROR;
   }
   
   // First check the device secret key
@@ -78,7 +84,7 @@ void setup() {
       Serial.println("INMP441 initialized successfully");
     else {
       Serial.println("Failed to configure INMP441");
-      while(1);
+      currentError = ErrorCode::HARDWARE_ERROR;
     }
 
     // ESP-DSP MFCC init
@@ -86,7 +92,7 @@ void setup() {
       Serial.println("MFCC DSP Engine initialized successfully");
     else {
       Serial.println("Failed to allocate memory for MFCC");
-      while(1);
+      currentError = ErrorCode::HARDWARE_ERROR;
     }
 
     // CNN model init
@@ -94,7 +100,7 @@ void setup() {
       Serial.println("CNN Model loaded successfully.");
     else {
       Serial.println("Failed to load CNN model!");
-      while(1);
+      currentError = ErrorCode::HARDWARE_ERROR;
     }
   }
 }
@@ -105,6 +111,24 @@ void loop() {
     WifiPortal::handleClient();
     delay(1);
     return;
+  }
+
+  // Update led message
+  led.update();
+
+  // Handle button
+  buttonEvent = button.getEvent();
+
+  // Display error
+  if (buttonEvent == ButtonEvent::SHORT_CLICK) {
+    led.errorMessage(currentError);
+  }
+
+  // Clear WiFi config & restart the device that will enter hotspot mode
+  if (buttonEvent == ButtonEvent::LONG_HOLD) {
+    NvsManager::clearWiFiConfig();
+    delay(2000);
+    ESP.restart();
   }
 
   int16_t sample_buffer[BUFFER_LEN];
