@@ -26,7 +26,7 @@ ButtonEvent Button::getEvent()
         // Long hold
         if (!longPressHandeled && (millis() - pressTime >= 3000)) {
             longPressHandeled = true;
-            return LONG_HOLD;
+            return ButtonEvent::LONG_HOLD;
         }
     }
 
@@ -38,9 +38,9 @@ ButtonEvent Button::getEvent()
         
         // Debouncing
         if (!longPressHandeled && pressDuration >= 50) {
-            return SHORT_CLICK;
+            return ButtonEvent::SHORT_CLICK;
         }
     }
 
-    return NONE;
+    return ButtonEvent::NONE;
 }

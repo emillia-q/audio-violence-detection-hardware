@@ -2,7 +2,7 @@
 
 #include <Arduino.h>
 
-enum ErrorCode {
+enum class ErrorCode {
     NONE,
     HARDWARE_ERROR,
     WIFI_ERROR,

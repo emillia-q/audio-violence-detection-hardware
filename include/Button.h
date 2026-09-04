@@ -2,7 +2,7 @@
 
 #include <Arduino.h>
 
-enum ButtonEvent {
+enum class ButtonEvent {
     NONE,
     SHORT_CLICK,
     LONG_HOLD

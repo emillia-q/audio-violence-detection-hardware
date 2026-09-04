@@ -5,13 +5,13 @@ Led::Led(int ledPin)
     _ledPin = ledPin;
     pinMode(_ledPin, OUTPUT);
     digitalWrite(_ledPin, LOW);
-    currentError = NONE;
+    currentError = ErrorCode::NONE;
 }
 
 void Led::errorMessage(ErrorCode errorCode)
 {
     // Prevents overriding currently displayed error
-    if (currentError != NONE) 
+    if (currentError != ErrorCode::NONE) 
         return;
 
     currentError = errorCode;
@@ -22,13 +22,13 @@ void Led::errorMessage(ErrorCode errorCode)
     digitalWrite(_ledPin, ledState);
     toggleCount = 1;
 
-    if (errorCode == HARDWARE_ERROR) {
+    if (errorCode == ErrorCode::HARDWARE_ERROR) {
         maxToggles = 2;
         interval = 2000;
-    } else if (errorCode == WIFI_ERROR) {
+    } else if (errorCode == ErrorCode::WIFI_ERROR) {
         maxToggles = 4;
         interval = 250;
-    } else if (errorCode == HTTP_ERROR) {
+    } else if (errorCode == ErrorCode::HTTP_ERROR) {
         maxToggles = 6;
         interval = 250;
     }
@@ -36,7 +36,7 @@ void Led::errorMessage(ErrorCode errorCode)
 
 void Led::update()
 {
-    if (currentError == NONE)
+    if (currentError == ErrorCode::NONE)
         return;
 
     if (millis() - previousMillis >= interval) {
@@ -49,7 +49,7 @@ void Led::update()
         } else {
             // Reached the limit
             digitalWrite(_ledPin, LOW);
-            currentError = NONE;
+            currentError = ErrorCode::NONE;
         }
     }
 }
