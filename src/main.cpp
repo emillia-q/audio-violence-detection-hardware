@@ -47,6 +47,7 @@ bool isConfigMode = false;
 int statusCode = 0;
 bool alertSent = false;
 bool deviceAuthenticated = false;
+bool hardwareFailed = false;
 
 void setup() {
   Serial.begin(115200);
@@ -103,15 +104,11 @@ void setup() {
       currentError = ErrorCode::HARDWARE_ERROR;
     }
   }
+
+  hardwareFailed = currentError == ErrorCode::HARDWARE_ERROR;
 }
 
 void loop() {
-  // Checks if user has connected to hotspot
-  if (isConfigMode) {
-    WifiPortal::handleClient();
-    delay(1);
-    return;
-  }
 
   // Update led message
   led.update();
@@ -130,6 +127,17 @@ void loop() {
     delay(2000);
     ESP.restart();
   }
+
+  // Checks if user has connected to hotspot
+  if (isConfigMode) {
+    WifiPortal::handleClient();
+    delay(1);
+    return;
+  }
+
+  // Early return when hardware failed
+  if (hardwareFailed)
+    return;
 
   int16_t sample_buffer[BUFFER_LEN];
   int samples_read = mic.readSamples(sample_buffer, BUFFER_LEN);
