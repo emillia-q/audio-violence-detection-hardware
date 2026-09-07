@@ -153,7 +153,7 @@ void loop() {
   if (!NvsManager::isActivated()) {
     // Set http error only when device has WiFi connection
     if (WiFi.status() == WL_CONNECTED) {
-      if (millis() - lastRetryActivationTime >= RETRY_INTERVAL) {
+      if (millis() - lastRetryActivationTime >= RETRY_INTERVAL && !led.isLedBusy()) {
         lastRetryActivationTime = millis();
         Serial.println("Device not activated. Trying to activate.");
         if (!BackendClient::activateDevice()) {
