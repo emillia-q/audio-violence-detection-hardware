@@ -10,6 +10,9 @@ Led::Led(int ledPin)
 
 void Led::errorMessage(ErrorCode errorCode)
 {
+    if (errorCode == ErrorCode::NONE)
+        return;
+
     // Prevents overriding currently displayed error
     if (currentError != ErrorCode::NONE) 
         return;
