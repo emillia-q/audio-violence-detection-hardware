@@ -44,7 +44,8 @@ EXT_RAM_ATTR float modelFeaturesBuffer[feature_count]; // Ready features for CNN
 
 // Program variables
 int statusCode = 0;
-unsigned long lastRetryTime = 0; 
+unsigned long lastRetryWifiTime = 0; 
+unsigned long lastRetryActivationTime = 0; 
 bool isConfigMode = false;
 bool alertSent = false;
 bool deviceAuthenticated = false;
@@ -99,7 +100,7 @@ void setup() {
     // Connect to WiFi
     WifiPortal::connectToSavedWifi();
   }
-  
+
   hardwareFailed = currentError == ErrorCode::HARDWARE_ERROR;
 }
 
@@ -139,12 +140,30 @@ void loop() {
     currentError = ErrorCode::WIFI_ERROR;
 
     // Try to connect again after 10s
-    if (millis() - lastRetryTime >= RETRY_INTERVAL) {
-      lastRetryTime = millis();
+    if (millis() - lastRetryWifiTime >= RETRY_INTERVAL) {
+      lastRetryWifiTime = millis();
       Serial.println("No wifi. Trying to connect again.");
       WifiPortal::connectToSavedWifi();
     }
 
+    return; // Disable CNN processing until there is WiFi connectuon
+  }
+
+  // Activation status check
+  if (!NvsManager::isActivated()) {
+    // Set http error only when device has WiFi connection
+    if (WiFi.status() == WL_CONNECTED) {
+      if (millis() - lastRetryActivationTime >= RETRY_INTERVAL) {
+        lastRetryActivationTime = millis();
+        Serial.println("Device not activated. Trying to activate.");
+        if (!BackendClient::activateDevice()) {
+          currentError = ErrorCode::HTTP_ERROR;
+          Serial.println("Failed to activate device.");
+        } else {
+          Serial.println("Device activated");
+        }
+      }
+    }
     return; // Disable CNN processing until there is WiFi connectuon
   }
 
