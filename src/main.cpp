@@ -47,6 +47,7 @@ int statusCode = 0;
 unsigned long lastWifiRetryTime = 0; 
 unsigned long lastActivationRetryTime = 0; 
 unsigned long lastAlertRetryTime = 0; 
+unsigned long alertTimestamp = 0;
 bool isConfigMode = false;
 bool alertSent = true;
 bool deviceAuthenticated = true;
@@ -54,7 +55,7 @@ bool hardwareFailed = false;
 
 // Constants
 const unsigned long RETRY_INTERVAL = 10000;
-const unsigned long ALERT_TIMEOUT = 12000;
+const unsigned long ALERT_TIMEOUT = 120000;
 
 void setup() {
   Serial.begin(115200);
@@ -185,29 +186,44 @@ void loop() {
     cnnModel.prediction(modelFeaturesBuffer, feature_count);
 
     // Check if violence was detected & send alert
-    if (cnnModel.violenceDetected())
-      alertSent = BackendClient::sendAlert(statusCode);
-  }
-
-  // If sending alert was unsuccessful & response status was unauthorized
-  if (statusCode == 401 && !alertSent) {
-    if (millis() - lastAlertRetryTime >= ALERT_TIMEOUT && !led.isLedBusy()) {
-      lastAlertRetryTime = millis();
-      Serial.println("Backend troubles. Sending query again.");
-      // Authorize & try again
-      deviceAuthenticated = BackendClient::authenticateDevice();
-      alertSent = BackendClient::sendAlert(statusCode);
-    } else {
-      // when the appropriate time has ended
-      Serial.println("Time has passed. Alert being omitted.");
-      alertSent = true;
-      deviceAuthenticated = true;
-      currentError = ErrorCode::NONE;
+    if (cnnModel.violenceDetected()) {
+      alertSent = false;
+      alertTimestamp = millis();
+      lastAlertRetryTime = 0; // Trials timer reset
     }
   }
 
-  // Other backend troubles
-  if (!deviceAuthenticated || !alertSent) {
-    currentError = ErrorCode::HTTP_ERROR;
+  // If sending alert was unsuccessful
+  if (!alertSent && !led.isLedBusy()) {
+    // Max trial time has passed
+    if (millis() - alertTimestamp >= ALERT_TIMEOUT) {
+      Serial.println("Time has passed. Alert being omitted.");
+      alertSent = true;
+      currentError = ErrorCode::NONE;
+    } else if (millis() - lastAlertRetryTime >= RETRY_INTERVAL || lastAlertRetryTime == 0) {
+      lastAlertRetryTime = millis();
+      Serial.println("Backend troubles. Sending query again.");
+
+      // Try sending alert
+      alertSent = BackendClient::sendAlert(statusCode);
+      
+      // When token has expired (401)
+      if (!alertSent && statusCode == 401) {
+        Serial.println("Token expired. Trying to authenticate.");
+        deviceAuthenticated = BackendClient::authenticateDevice();
+
+        // Try to send alert again
+        if (deviceAuthenticated)
+          alertSent = BackendClient::sendAlert(statusCode);
+      }
+
+      // Error update
+      if (alertSent) {
+        currentError = ErrorCode::NONE;
+        Serial.println("Alert sent");
+      } else {
+        currentError = ErrorCode::HTTP_ERROR;
+      }
+    } 
   }
 }
