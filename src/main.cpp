@@ -68,14 +68,16 @@ void setup() {
     WifiPortal::startConfigurationMode();
   } else {
     // Connect to WiFi
-    while (!WifiPortal::connectToSavedWifi()) 
-        Serial.println("Trying to connect again");
+    if (!WifiPortal::connectToSavedWifi()) {
+      Serial.println("WiFi connection failed");
+      currentError = ErrorCode::WIFI_ERROR;
+    }
         
      // Check if device is already active & assigned to a user in database
     if (!NvsManager::isActivated()) {
       if (!BackendClient::activateDevice()) {
         Serial.println("Device activation failed");
-        while (1);
+        currentError = ErrorCode::HTTP_ERROR;
       }
     }
 
