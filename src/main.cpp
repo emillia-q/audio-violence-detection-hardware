@@ -47,12 +47,13 @@ int statusCode = 0;
 unsigned long lastRetryWifiTime = 0; 
 unsigned long lastRetryActivationTime = 0; 
 bool isConfigMode = false;
-bool alertSent = false;
-bool deviceAuthenticated = false;
+bool alertSent = true;
+bool deviceAuthenticated = true;
 bool hardwareFailed = false;
 
 // Constants
 const unsigned long RETRY_INTERVAL = 10000;
+const unsigned long ALERT_TIMEOUT = 120000;
 
 void setup() {
   Serial.begin(115200);
@@ -167,6 +168,7 @@ void loop() {
     return; // Disable CNN processing until there is WiFi connectuon
   }
 
+  // CNN processing
   int16_t sample_buffer[BUFFER_LEN];
   int samples_read = mic.readSamples(sample_buffer, BUFFER_LEN);
   for (int i = 0; i < samples_read; i++)
@@ -194,11 +196,7 @@ void loop() {
   }
 
   // Other backend troubles
-  if (!deviceAuthenticated && !alertSent) {
-    // TODO: invalid request payload or troubles with authorization
-  }
-
-  if (deviceAuthenticated && !alertSent) {
-    // TODO: wrong token format, wrong role, device or user not found -> display it to the user
+  if (!deviceAuthenticated || !alertSent) {
+    currentError = ErrorCode::HTTP_ERROR;
   }
 }
