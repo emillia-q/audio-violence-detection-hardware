@@ -43,11 +43,15 @@ EXT_RAM_ATTR float modelInputBuffer[32000];
 EXT_RAM_ATTR float modelFeaturesBuffer[feature_count]; // Ready features for CNN
 
 // Program variables
-bool isConfigMode = false;
 int statusCode = 0;
+unsigned long lastRetryTime = 0; 
+bool isConfigMode = false;
 bool alertSent = false;
 bool deviceAuthenticated = false;
 bool hardwareFailed = false;
+
+// Constants
+const unsigned long RETRY_INTERVAL = 10000;
 
 void setup() {
   Serial.begin(115200);
@@ -67,21 +71,7 @@ void setup() {
     isConfigMode = true;
     WifiPortal::startConfigurationMode();
   } else {
-    // Connect to WiFi
-    if (!WifiPortal::connectToSavedWifi()) {
-      Serial.println("WiFi connection failed");
-      currentError = ErrorCode::WIFI_ERROR;
-    }
-        
-     // Check if device is already active & assigned to a user in database
-    if (!NvsManager::isActivated()) {
-      if (!BackendClient::activateDevice()) {
-        Serial.println("Device activation failed");
-        currentError = ErrorCode::HTTP_ERROR;
-      }
-    }
-
-    // Wifi credentials saved & device assigned to a user
+    // Hardware initialization
     // Mic init
     if(mic.begin())
       Serial.println("INMP441 initialized successfully");
@@ -105,8 +95,11 @@ void setup() {
       Serial.println("Failed to load CNN model!");
       currentError = ErrorCode::HARDWARE_ERROR;
     }
-  }
 
+    // Connect to WiFi
+    WifiPortal::connectToSavedWifi();
+  }
+  
   hardwareFailed = currentError == ErrorCode::HARDWARE_ERROR;
 }
 
@@ -140,6 +133,20 @@ void loop() {
   // Early return when hardware failed
   if (hardwareFailed)
     return;
+
+  // WiFi connection check
+  if (WiFi.status() != WL_CONNECTED) {
+    currentError = ErrorCode::WIFI_ERROR;
+
+    // Try to connect again after 10s
+    if (millis() - lastRetryTime >= RETRY_INTERVAL) {
+      lastRetryTime = millis();
+      Serial.println("No wifi. Trying to connect again.");
+      WifiPortal::connectToSavedWifi();
+    }
+
+    return; // Disable CNN processing until there is WiFi connectuon
+  }
 
   int16_t sample_buffer[BUFFER_LEN];
   int samples_read = mic.readSamples(sample_buffer, BUFFER_LEN);
