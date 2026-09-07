@@ -150,6 +150,8 @@ void loop() {
     }
 
     return; // Disable CNN processing until there is WiFi connectuon
+  } else {
+    currentError = ErrorCode::NONE;
   }
 
   // Activation status check
@@ -176,7 +178,7 @@ void loop() {
   for (int i = 0; i < samples_read; i++)
     audioBuffer.addSample(sample_buffer[i]);
 
-  if (audioBuffer.isWindowReady()) {
+  if (audioBuffer.isWindowReady() && !led.isLedBusy()) {
     audioBuffer.extractAndNormalizeWindow(modelInputBuffer);
 
     // MFCC extraction
