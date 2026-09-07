@@ -44,8 +44,9 @@ EXT_RAM_ATTR float modelFeaturesBuffer[feature_count]; // Ready features for CNN
 
 // Program variables
 int statusCode = 0;
-unsigned long lastRetryWifiTime = 0; 
-unsigned long lastRetryActivationTime = 0; 
+unsigned long lastWifiRetryTime = 0; 
+unsigned long lastActivationRetryTime = 0; 
+unsigned long lastAlertRetryTime = 0; 
 bool isConfigMode = false;
 bool alertSent = true;
 bool deviceAuthenticated = true;
@@ -53,7 +54,7 @@ bool hardwareFailed = false;
 
 // Constants
 const unsigned long RETRY_INTERVAL = 10000;
-const unsigned long ALERT_TIMEOUT = 120000;
+const unsigned long ALERT_TIMEOUT = 12000;
 
 void setup() {
   Serial.begin(115200);
@@ -141,8 +142,8 @@ void loop() {
     currentError = ErrorCode::WIFI_ERROR;
 
     // Try to connect again after 10s
-    if (millis() - lastRetryWifiTime >= RETRY_INTERVAL) {
-      lastRetryWifiTime = millis();
+    if (millis() - lastWifiRetryTime >= RETRY_INTERVAL) {
+      lastWifiRetryTime = millis();
       Serial.println("No wifi. Trying to connect again.");
       WifiPortal::connectToSavedWifi();
     }
@@ -154,8 +155,8 @@ void loop() {
   if (!NvsManager::isActivated()) {
     // Set http error only when device has WiFi connection
     if (WiFi.status() == WL_CONNECTED) {
-      if (millis() - lastRetryActivationTime >= RETRY_INTERVAL && !led.isLedBusy()) {
-        lastRetryActivationTime = millis();
+      if (millis() - lastActivationRetryTime >= RETRY_INTERVAL && !led.isLedBusy()) {
+        lastActivationRetryTime = millis();
         Serial.println("Device not activated. Trying to activate.");
         if (!BackendClient::activateDevice()) {
           currentError = ErrorCode::HTTP_ERROR;
@@ -190,9 +191,19 @@ void loop() {
 
   // If sending alert was unsuccessful & response status was unauthorized
   if (statusCode == 401 && !alertSent) {
-    // Authorize & try again
-    deviceAuthenticated = BackendClient::authenticateDevice();
-    alertSent = BackendClient::sendAlert(statusCode);
+    if (millis() - lastAlertRetryTime >= ALERT_TIMEOUT && !led.isLedBusy()) {
+      lastAlertRetryTime = millis();
+      Serial.println("Backend troubles. Sending query again.");
+      // Authorize & try again
+      deviceAuthenticated = BackendClient::authenticateDevice();
+      alertSent = BackendClient::sendAlert(statusCode);
+    } else {
+      // when the appropriate time has ended
+      Serial.println("Time has passed. Alert being omitted.");
+      alertSent = true;
+      deviceAuthenticated = true;
+      currentError = ErrorCode::NONE;
+    }
   }
 
   // Other backend troubles
