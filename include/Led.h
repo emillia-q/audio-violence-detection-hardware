@@ -24,4 +24,5 @@ public:
 
     void errorMessage(ErrorCode errorCode);
     void update();
+    bool isLedBusy();
 };

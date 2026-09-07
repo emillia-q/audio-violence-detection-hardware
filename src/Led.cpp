@@ -56,3 +56,8 @@ void Led::update()
         }
     }
 }
+
+bool Led::isLedBusy()
+{
+    return currentError != ErrorCode::NONE;
+}
