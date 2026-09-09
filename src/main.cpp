@@ -1,7 +1,6 @@
 #include <Arduino.h>
 #include "Inmp441.h"
 #include "AudioBuffer.h"
-#include "MfccExtractor.h"
 #include "CnnModel.h"
 #include"secret.h"
 #include"NvsManager.h"
@@ -31,7 +30,6 @@ constexpr size_t feature_count = 63 * 13;
 // Object instances
 Inmp441 mic(MIC_WS, MIC_SD, MIC_SCK, I2S_PORT);
 AudioBuffer audioBuffer;
-MfccExtractor mfccExtr;
 CnnModel cnnModel;
 ErrorCode currentError = ErrorCode::NONE;
 Led led(RED_LED);
@@ -81,14 +79,6 @@ void setup() {
       Serial.println("INMP441 initialized successfully");
     else {
       Serial.println("Failed to configure INMP441");
-      currentError = ErrorCode::HARDWARE_ERROR;
-    }
-
-    // ESP-DSP MFCC init
-    if(mfccExtr.begin())
-      Serial.println("MFCC DSP Engine initialized successfully");
-    else {
-      Serial.println("Failed to allocate memory for MFCC");
       currentError = ErrorCode::HARDWARE_ERROR;
     }
 
@@ -182,7 +172,6 @@ void loop() {
     audioBuffer.extractAndNormalizeWindow(modelInputBuffer);
 
     // MFCC extraction
-    mfccExtr.compute(modelInputBuffer, modelFeaturesBuffer);
 
     // Model prediction
     cnnModel.prediction(modelFeaturesBuffer, feature_count);
