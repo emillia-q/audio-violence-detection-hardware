@@ -1,13 +1,14 @@
 #include <Arduino.h>
+#include <esp_heap_caps.h>
 #include "Inmp441.h"
 #include "AudioBuffer.h"
-#include "CnnModel.h"
 #include"secret.h"
 #include"NvsManager.h"
 #include"WifiPortal.h"
 #include"BackendClient.h"
 #include "Led.h"
 #include "Button.h"
+#include <audio-violence-detection_inferencing.h>
 
 // Pin configuration
 
@@ -30,15 +31,13 @@ constexpr size_t feature_count = 63 * 13;
 // Object instances
 Inmp441 mic(MIC_WS, MIC_SD, MIC_SCK, I2S_PORT);
 AudioBuffer audioBuffer;
-CnnModel cnnModel;
 ErrorCode currentError = ErrorCode::NONE;
 Led led(RED_LED);
 ButtonEvent buttonEvent = ButtonEvent::NONE;
 Button button(BUTTON_PIN);
 
-// Global buffers (allocated in external PSRAM)
-EXT_RAM_ATTR float modelInputBuffer[32000];
-EXT_RAM_ATTR float modelFeaturesBuffer[feature_count]; // Ready features for CNN
+// Global buffers allocated from PSRAM at runtime.
+float* modelInputBuffer = nullptr;
 
 // Program variables
 int statusCode = 0;
@@ -57,6 +56,13 @@ const unsigned long ALERT_TIMEOUT = 120000;
 
 void setup() {
   Serial.begin(115200);
+
+  modelInputBuffer = (float*)heap_caps_malloc(32000 * sizeof(float), MALLOC_CAP_SPIRAM);
+  if (modelInputBuffer == nullptr) {
+    Serial.println("Failed to allocate model input buffer from PSRAM");
+    currentError = ErrorCode::HARDWARE_ERROR;
+    hardwareFailed = true;
+  }
 
   // NVS configuration
   if (!NvsManager::begin()) {
@@ -79,14 +85,6 @@ void setup() {
       Serial.println("INMP441 initialized successfully");
     else {
       Serial.println("Failed to configure INMP441");
-      currentError = ErrorCode::HARDWARE_ERROR;
-    }
-
-    // CNN model init
-    if(cnnModel.begin())
-      Serial.println("CNN Model loaded successfully.");
-    else {
-      Serial.println("Failed to load CNN model!");
       currentError = ErrorCode::HARDWARE_ERROR;
     }
 
@@ -174,14 +172,13 @@ void loop() {
     // MFCC extraction
 
     // Model prediction
-    cnnModel.prediction(modelFeaturesBuffer, feature_count);
 
     // Check if violence was detected & send alert
-    if (cnnModel.violenceDetected()) {
+    ///if () {
       alertSent = false;
       alertTimestamp = millis();
       lastAlertRetryTime = 0; // Trials timer reset
-    }
+    //}
   }
 
   // If sending alert was unsuccessful
