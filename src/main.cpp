@@ -1,14 +1,14 @@
 #include <Arduino.h>
+#include <esp_heap_caps.h>
 #include "Inmp441.h"
 #include "AudioBuffer.h"
-#include "MfccExtractor.h"
-#include "CnnModel.h"
 #include"secret.h"
 #include"NvsManager.h"
 #include"WifiPortal.h"
 #include"BackendClient.h"
 #include "Led.h"
 #include "Button.h"
+#include <audio-violence-detection_inferencing.h>
 
 // Pin configuration
 
@@ -25,22 +25,16 @@
 #define I2S_PORT I2S_NUM_0  // Use first available I2S port
 #define BUFFER_LEN 256
 
-// Model configuration
-constexpr size_t feature_count = 63 * 13;
-
 // Object instances
 Inmp441 mic(MIC_WS, MIC_SD, MIC_SCK, I2S_PORT);
 AudioBuffer audioBuffer;
-MfccExtractor mfccExtr;
-CnnModel cnnModel;
 ErrorCode currentError = ErrorCode::NONE;
 Led led(RED_LED);
 ButtonEvent buttonEvent = ButtonEvent::NONE;
 Button button(BUTTON_PIN);
 
-// Global buffers (allocated in external PSRAM)
-EXT_RAM_ATTR float modelInputBuffer[32000];
-EXT_RAM_ATTR float modelFeaturesBuffer[feature_count]; // Ready features for CNN
+// Global buffers allocated from PSRAM at runtime.
+float* modelInputBuffer = nullptr;
 
 // Program variables
 int statusCode = 0;
@@ -57,8 +51,21 @@ bool hardwareFailed = false;
 const unsigned long RETRY_INTERVAL = 10000;
 const unsigned long ALERT_TIMEOUT = 120000;
 
+// Edge Impulse Callback
+int raw_feature_get_data(size_t offset, size_t length, float *out_ptr) {
+    memcpy(out_ptr, modelInputBuffer + offset, length * sizeof(float));
+    return 0;
+}
+
 void setup() {
   Serial.begin(115200);
+
+  modelInputBuffer = (float*)heap_caps_malloc(32000 * sizeof(float), MALLOC_CAP_SPIRAM);
+  if (modelInputBuffer == nullptr) {
+    Serial.println("Failed to allocate model input buffer from PSRAM");
+    currentError = ErrorCode::HARDWARE_ERROR;
+    hardwareFailed = true;
+  }
 
   // NVS configuration
   if (!NvsManager::begin()) {
@@ -81,22 +88,6 @@ void setup() {
       Serial.println("INMP441 initialized successfully");
     else {
       Serial.println("Failed to configure INMP441");
-      currentError = ErrorCode::HARDWARE_ERROR;
-    }
-
-    // ESP-DSP MFCC init
-    if(mfccExtr.begin())
-      Serial.println("MFCC DSP Engine initialized successfully");
-    else {
-      Serial.println("Failed to allocate memory for MFCC");
-      currentError = ErrorCode::HARDWARE_ERROR;
-    }
-
-    // CNN model init
-    if(cnnModel.begin())
-      Serial.println("CNN Model loaded successfully.");
-    else {
-      Serial.println("Failed to load CNN model!");
       currentError = ErrorCode::HARDWARE_ERROR;
     }
 
@@ -150,7 +141,7 @@ void loop() {
     }
 
     return; // Disable CNN processing until there is WiFi connectuon
-  } else {
+  } else if (currentError == ErrorCode::WIFI_ERROR) {
     currentError = ErrorCode::NONE;
   }
 
@@ -181,14 +172,32 @@ void loop() {
   if (audioBuffer.isWindowReady() && !led.isLedBusy()) {
     audioBuffer.extractAndNormalizeWindow(modelInputBuffer);
 
-    // MFCC extraction
-    mfccExtr.compute(modelInputBuffer, modelFeaturesBuffer);
+    signal_t features_signal;
+    features_signal.total_length = EI_CLASSIFIER_RAW_SAMPLE_COUNT; // 32000 (2s)
+    features_signal.get_data = &raw_feature_get_data;
 
-    // Model prediction
-    cnnModel.prediction(modelFeaturesBuffer, feature_count);
+    ei_impulse_result_t result = { 0 };
 
-    // Check if violence was detected & send alert
-    if (cnnModel.violenceDetected()) {
+    // Run inference on the 2-second audio buffer
+    EI_IMPULSE_ERROR res = run_classifier(&features_signal, &result, false);
+
+    if (res != EI_IMPULSE_OK) {
+        Serial.printf("Edge Impulse classifier error (%d)\n", res);
+        return;
+    }
+
+    Serial.printf("Ambient: %.4f | Speech: %.4f | Violence: %.4f\n", 
+      result.classification[0].value, 
+      result.classification[1].value, 
+      result.classification[2].value);
+
+    float violence_score = result.classification[2].value;
+    float speech_score = result.classification[1].value;
+    float ambient_score = result.classification[0].value;
+
+    if (violence_score >= 0.75f) {
+            
+      Serial.println("Violence detected. Sending alert.");
       alertSent = false;
       alertTimestamp = millis();
       lastAlertRetryTime = 0; // Trials timer reset
