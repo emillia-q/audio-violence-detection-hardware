@@ -51,6 +51,12 @@ bool hardwareFailed = false;
 const unsigned long RETRY_INTERVAL = 10000;
 const unsigned long ALERT_TIMEOUT = 120000;
 
+// Edge Impulse Callback
+int raw_feature_get_data(size_t offset, size_t length, float *out_ptr) {
+    memcpy(out_ptr, modelInputBuffer + offset, length * sizeof(float));
+    return 0;
+}
+
 void setup() {
   Serial.begin(115200);
 
@@ -166,16 +172,36 @@ void loop() {
   if (audioBuffer.isWindowReady() && !led.isLedBusy()) {
     audioBuffer.extractAndNormalizeWindow(modelInputBuffer);
 
-    // MFCC extraction
+    signal_t features_signal;
+    features_signal.total_length = EI_CLASSIFIER_RAW_SAMPLE_COUNT; // 32000 (2s)
+    features_signal.get_data = &raw_feature_get_data;
 
-    // Model prediction
+    ei_impulse_result_t result = { 0 };
+    
+    // Run inference on the 2-second audio buffer
+    EI_IMPULSE_ERROR res = run_classifier(&features_signal, &result, false);
 
-    // Check if violence was detected & send alert
-    ///if () {
+    if (res != EI_IMPULSE_OK) {
+        Serial.printf("Edge Impulse classifier error (%d)\n", res);
+        return;
+    }
+
+    Serial.printf("Ambient: %.4f | Speech: %.4f | Violence: %.4f\n", 
+      result.classification[0].value, 
+      result.classification[1].value, 
+      result.classification[2].value);
+
+    float violence_score = result.classification[2].value;
+    float speech_score = result.classification[1].value;
+    float ambient_score = result.classification[0].value;
+
+    if (violence_score >= 0.75f) {
+            
+      Serial.println("Violence detected. Sending alert.");
       alertSent = false;
       alertTimestamp = millis();
       lastAlertRetryTime = 0; // Trials timer reset
-    //}
+    }
   }
 
   // If sending alert was unsuccessful
