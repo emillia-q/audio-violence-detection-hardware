@@ -141,7 +141,7 @@ void loop() {
     }
 
     return; // Disable CNN processing until there is WiFi connectuon
-  } else {
+  } else if (currentError == ErrorCode::WIFI_ERROR) {
     currentError = ErrorCode::NONE;
   }
 
@@ -177,7 +177,7 @@ void loop() {
     features_signal.get_data = &raw_feature_get_data;
 
     ei_impulse_result_t result = { 0 };
-    
+
     // Run inference on the 2-second audio buffer
     EI_IMPULSE_ERROR res = run_classifier(&features_signal, &result, false);
 
