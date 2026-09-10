@@ -25,9 +25,6 @@
 #define I2S_PORT I2S_NUM_0  // Use first available I2S port
 #define BUFFER_LEN 256
 
-// Model configuration
-constexpr size_t feature_count = 63 * 13;
-
 // Object instances
 Inmp441 mic(MIC_WS, MIC_SD, MIC_SCK, I2S_PORT);
 AudioBuffer audioBuffer;
