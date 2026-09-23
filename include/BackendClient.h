@@ -11,7 +11,7 @@ class BackendClient {
     static const char* AUTH_URL;
     static const char* SEND_ALERT_URL;
 
-    static void deactivateDevice();
+    static void resetActivation();
 
 public:
     static bool activateDevice();

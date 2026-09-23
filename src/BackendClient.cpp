@@ -5,15 +5,10 @@ const char* BackendClient::ACTIVATE_URL = BACKEND_ACTIVATE_DEVICE_URL;
 const char* BackendClient::AUTH_URL = BACKEND_AUTH_DEVICE_URL;
 const char* BackendClient::SEND_ALERT_URL = BACKEND_SEND_ALERT_URL;
 
-void BackendClient::deactivateDevice()
+void BackendClient::resetActivation()
 {
     NvsManager::setActivated(false);
-    NvsManager::clearWiFiConfig();
     NvsManager::saveToken("");
-
-    // Wait & restart esp
-        delay(2000);
-        ESP.restart();
 }
 
 bool BackendClient::activateDevice()
@@ -56,7 +51,7 @@ bool BackendClient::activateDevice()
                 
             case 422:
                 Serial.println("422: Device is not paired with a user");
-                deactivateDevice();
+                resetActivation();
                 break;
                 
             default:
@@ -129,7 +124,7 @@ bool BackendClient::authenticateDevice()
 
             case 422:
                 Serial.println("422: Device is disconnected or not activated");
-                deactivateDevice();
+                resetActivation();
                 break;
                 
             default:
@@ -183,7 +178,7 @@ bool BackendClient::sendAlert(int& statusCode)
             
             case 422:
                 Serial.println("422: Device is disconnected or not activated");
-                deactivateDevice();
+                resetActivation();
                 break;
                 
             default:
