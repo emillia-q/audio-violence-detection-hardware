@@ -50,7 +50,7 @@ bool hardwareFailed = false;
 // Constants
 const unsigned long RETRY_INTERVAL = 10000;
 const unsigned long ALERT_TIMEOUT = 120000;
-const float VIOLENCE_THRESHOLD = 0.75f;
+const float VIOLENCE_THRESHOLD = 0.45f;
 const float VIOLENCE_MARGIN = 0.10f;
 const int VOTE_WINDOW = 4;
 const int VOTE_REQUIRED = 2;
