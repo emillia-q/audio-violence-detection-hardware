@@ -1,6 +1,6 @@
-#include "Inmp441.h"
+#include "Microphone.h"
 
-Inmp441::Inmp441(int ws, int sd, int sck, i2s_port_t port)
+Microphone::Microphone(int ws, int sd, int sck, i2s_port_t port)
 {
     mic_ws = ws;
     mic_sd = sd;
@@ -8,7 +8,7 @@ Inmp441::Inmp441(int ws, int sd, int sck, i2s_port_t port)
     i2sPort = port;
 }
 
-bool Inmp441::begin()
+bool Microphone::begin()
 {
     i2s_config_t cfg = {
         .mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_RX),
@@ -31,13 +31,13 @@ bool Inmp441::begin()
         .data_in_num = mic_sd
     };
 
-    if (i2s_driver_install(i2sPort, &cfg, 0, NULL) != ESP_OK || i2s_set_pin(i2sPort, &pin_cfg) != ESP_OK) 
+    if (i2s_driver_install(i2sPort, &cfg, 0, NULL) != ESP_OK || i2s_set_pin(i2sPort, &pin_cfg) != ESP_OK)
         return false;
     i2s_zero_dma_buffer(i2sPort);
     return true;
 }
 
-int Inmp441::readSamples(int16_t *buffer, size_t maxSamples)
+int Microphone::readSamples(int16_t *buffer, size_t maxSamples)
 {
     int32_t raw_hardware_buff[maxSamples];
     size_t bytes_read = 0;
@@ -51,9 +51,9 @@ int Inmp441::readSamples(int16_t *buffer, size_t maxSamples)
         // Shift right by 8 to drop empty low bits, then mask to keep clean 24-bit audio
         int32_t v = (raw_hardware_buff[i] >> 8) & 0xFFFFFF;
         // If the 24th bit is 1 (negative), sign-extend the top 8 bits to 0xFF
-        if (v & 0x800000) 
+        if (v & 0x800000)
         v |= 0xFF000000;
-        
+
         // Convert to 16-bit and write to output buffer
         buffer[i] = (int16_t)(v >> 8);
     }

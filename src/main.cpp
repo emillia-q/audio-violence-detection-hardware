@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <esp_heap_caps.h>
-#include "Inmp441.h"
+#include "Microphone.h"
 #include "AudioBuffer.h"
 #include"secret.h"
 #include"NvsManager.h"
@@ -26,7 +26,7 @@
 #define BUFFER_LEN 256
 
 // Object instances
-Inmp441 mic(MIC_WS, MIC_SD, MIC_SCK, I2S_PORT);
+Microphone mic(MIC_WS, MIC_SD, MIC_SCK, I2S_PORT);
 AudioBuffer audioBuffer;
 ErrorCode currentError = ErrorCode::NONE;
 Led led(RED_LED);
