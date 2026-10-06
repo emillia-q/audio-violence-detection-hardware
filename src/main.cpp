@@ -52,8 +52,8 @@ const unsigned long RETRY_INTERVAL = 10000;
 const unsigned long ALERT_TIMEOUT = 120000;
 const float VIOLENCE_THRESHOLD = 0.45f;
 const float VIOLENCE_MARGIN = 0.10f;
-const int VOTE_WINDOW = 4;
-const int VOTE_REQUIRED = 2;
+const int VOTE_WINDOW = 6;
+const int VOTE_REQUIRED = 4;
 const unsigned long ALERT_COOLDOWN = 600000;
 bool voteHistory[VOTE_WINDOW] = {false};
 int voteIndex = 0;
@@ -236,7 +236,7 @@ void loop() {
       cooldownUntil = millis() + ALERT_COOLDOWN;
     } else if (millis() - lastAlertRetryTime >= RETRY_INTERVAL || lastAlertRetryTime == 0) {
       lastAlertRetryTime = millis();
-      Serial.println("Backend troubles. Sending query again.");
+      Serial.println("Backend issue. Retrying request.");
 
       // Try sending alert
       alertSent = BackendClient::sendAlert(statusCode);
