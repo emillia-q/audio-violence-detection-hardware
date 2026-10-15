@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <esp_heap_caps.h>
-#include "Inmp441.h"
+#include "Microphone.h"
 #include "AudioBuffer.h"
 #include"secret.h"
 #include"NvsManager.h"
@@ -19,14 +19,14 @@
 #define BUTTON_PIN 8
 
 // INMP441
-#define MIC_WS   15         // Word Select
-#define MIC_SD   13         // Serial Data
-#define MIC_SCK  4          // Serial Clock
-#define I2S_PORT I2S_NUM_0  // Use first available I2S port
+#define MIC_WS 15 // Word Select
+#define MIC_SD 13 // Serial Data
+#define MIC_SCK 4 // Serial Clock
+#define I2S_PORT I2S_NUM_0 // Use first available I2S port
 #define BUFFER_LEN 256
 
 // Object instances
-Inmp441 mic(MIC_WS, MIC_SD, MIC_SCK, I2S_PORT);
+Microphone mic(MIC_WS, MIC_SD, MIC_SCK, I2S_PORT);
 AudioBuffer audioBuffer;
 ErrorCode currentError = ErrorCode::NONE;
 Led led(RED_LED);
@@ -50,6 +50,14 @@ bool hardwareFailed = false;
 // Constants
 const unsigned long RETRY_INTERVAL = 10000;
 const unsigned long ALERT_TIMEOUT = 120000;
+const float VIOLENCE_THRESHOLD = 0.45f;
+const float VIOLENCE_MARGIN = 0.10f;
+const int VOTE_WINDOW = 6;
+const int VOTE_REQUIRED = 4;
+const unsigned long ALERT_COOLDOWN = 600000;
+bool voteHistory[VOTE_WINDOW] = {false};
+int voteIndex = 0;
+unsigned long cooldownUntil = 0;
 
 // Edge Impulse Callback
 int raw_feature_get_data(size_t offset, size_t length, float *out_ptr) {
@@ -195,12 +203,26 @@ void loop() {
     float speech_score = result.classification[1].value;
     float ambient_score = result.classification[0].value;
 
-    if (violence_score >= 0.75f) {
-            
-      Serial.println("Violence detected. Sending alert.");
+    float secondHighest = max(ambient_score, speech_score);
+    bool positiveVote = (violence_score >= VIOLENCE_THRESHOLD) && (violence_score - secondHighest >= VIOLENCE_MARGIN);
+
+    voteHistory[voteIndex] = positiveVote;
+    voteIndex = (voteIndex + 1) % VOTE_WINDOW;
+
+    int positiveCount = 0;
+    for (int i = 0; i < VOTE_WINDOW; i++)
+      if (voteHistory[i]) positiveCount++;
+
+    bool inCooldown = millis() < cooldownUntil;
+
+    if (positiveCount >= VOTE_REQUIRED && alertSent && !inCooldown) {
+      Serial.println("Violence confirmed by majority vote. Sending alert.");
       alertSent = false;
       alertTimestamp = millis();
-      lastAlertRetryTime = 0; // Trials timer reset
+      lastAlertRetryTime = 0;
+
+      for (int i = 0; i < VOTE_WINDOW; i++)
+        voteHistory[i] = false;
     }
   }
 
@@ -211,9 +233,10 @@ void loop() {
       Serial.println("Time has passed. Alert being omitted.");
       alertSent = true;
       currentError = ErrorCode::NONE;
+      cooldownUntil = millis() + ALERT_COOLDOWN;
     } else if (millis() - lastAlertRetryTime >= RETRY_INTERVAL || lastAlertRetryTime == 0) {
       lastAlertRetryTime = millis();
-      Serial.println("Backend troubles. Sending query again.");
+      Serial.println("Backend issue. Retrying request.");
 
       // Try sending alert
       alertSent = BackendClient::sendAlert(statusCode);
@@ -231,6 +254,7 @@ void loop() {
       // Error update
       if (alertSent) {
         currentError = ErrorCode::NONE;
+        cooldownUntil = millis() + ALERT_COOLDOWN;
         Serial.println("Alert sent");
       } else {
         currentError = ErrorCode::HTTP_ERROR;
