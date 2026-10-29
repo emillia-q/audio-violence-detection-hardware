@@ -36,6 +36,15 @@ Button button(BUTTON_PIN);
 // Global buffers allocated from PSRAM at runtime.
 float* modelInputBuffer = nullptr;
 
+// Constants
+const unsigned long RETRY_INTERVAL = 10000;
+const unsigned long ALERT_TIMEOUT = 120000;
+const float VIOLENCE_THRESHOLD = 0.45f;
+const float VIOLENCE_MARGIN = 0.10f;
+const int VOTE_WINDOW = 6;
+const int VOTE_REQUIRED = 4;
+const unsigned long ALERT_COOLDOWN = 600000;
+
 // Program variables
 int statusCode = 0;
 unsigned long lastWifiRetryTime = 0; 
@@ -49,15 +58,6 @@ bool hardwareFailed = false;
 bool voteHistory[VOTE_WINDOW] = {false};
 int voteIndex = 0;
 unsigned long cooldownUntil = 0;
-
-// Constants
-const unsigned long RETRY_INTERVAL = 10000;
-const unsigned long ALERT_TIMEOUT = 120000;
-const float VIOLENCE_THRESHOLD = 0.45f;
-const float VIOLENCE_MARGIN = 0.10f;
-const int VOTE_WINDOW = 6;
-const int VOTE_REQUIRED = 4;
-const unsigned long ALERT_COOLDOWN = 600000;
 
 // Edge Impulse Callback
 int raw_feature_get_data(size_t offset, size_t length, float *out_ptr) {
