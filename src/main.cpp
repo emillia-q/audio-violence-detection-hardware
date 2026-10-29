@@ -46,6 +46,9 @@ bool isConfigMode = false;
 bool alertSent = true;
 bool deviceAuthenticated = true;
 bool hardwareFailed = false;
+bool voteHistory[VOTE_WINDOW] = {false};
+int voteIndex = 0;
+unsigned long cooldownUntil = 0;
 
 // Constants
 const unsigned long RETRY_INTERVAL = 10000;
@@ -55,9 +58,6 @@ const float VIOLENCE_MARGIN = 0.10f;
 const int VOTE_WINDOW = 6;
 const int VOTE_REQUIRED = 4;
 const unsigned long ALERT_COOLDOWN = 600000;
-bool voteHistory[VOTE_WINDOW] = {false};
-int voteIndex = 0;
-unsigned long cooldownUntil = 0;
 
 // Edge Impulse Callback
 int raw_feature_get_data(size_t offset, size_t length, float *out_ptr) {
