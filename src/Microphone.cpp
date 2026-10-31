@@ -52,7 +52,7 @@ int Microphone::readSamples(int16_t *buffer, size_t maxSamples)
         int32_t v = (raw_hardware_buff[i] >> 8) & 0xFFFFFF;
         // If the 24th bit is 1 (negative), sign-extend the top 8 bits to 0xFF
         if (v & 0x800000)
-        v |= 0xFF000000;
+            v |= 0xFF000000;
 
         // Convert to 16-bit and write to output buffer
         buffer[i] = (int16_t)(v >> 8);

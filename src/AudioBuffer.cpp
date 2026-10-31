@@ -2,8 +2,8 @@
 
 AudioBuffer::AudioBuffer()
 {
-    ringBuffer = (int16_t*)malloc(WINDOW_SIZE * sizeof(int16_t));   // Allocate memory on heap
-    memset(ringBuffer, 0, WINDOW_SIZE * sizeof(int16_t));           // Clean up
+    ringBuffer = (int16_t*)malloc(WINDOW_SIZE * sizeof(int16_t)); // Allocate memory on heap
+    memset(ringBuffer, 0, WINDOW_SIZE * sizeof(int16_t)); // Clean up
     writePointer = 0;
     samplesSinceLastStep = 0;
 }
@@ -34,10 +34,10 @@ void AudioBuffer::extractAndNormalizeWindow(float *outputBuffer)
             maxAbs = calcAbs;
     }
 
-    // Perform division only if the sound is not perfect silence - unlikely to happen
-    if (maxAbs > 0.0001f) {
+    // Perform division only if the sound is not perfect silence
+    if (maxAbs > SILENCE_THRESHOLD) {
         // Scale to 16-bit PCM range (max 32767) to match Python sf.write format used during model training
-        float scale = 32767.0f / maxAbs;
+        float scale = PCM_MAX / maxAbs;
         for (int i = 0; i < WINDOW_SIZE; i++)
             outputBuffer[i] = outputBuffer[i] * scale;
     }
