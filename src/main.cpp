@@ -44,6 +44,7 @@ const float VIOLENCE_MARGIN = 0.10f;
 const int VOTE_WINDOW = 6;
 const int VOTE_REQUIRED = 4;
 const unsigned long ALERT_COOLDOWN = 600000;
+const int HTTP_UNAUTHORIZED = 401;
 
 // Program variables
 int statusCode = 0;
@@ -242,7 +243,7 @@ void loop() {
       alertSent = BackendClient::sendAlert(statusCode);
       
       // When token has expired (401)
-      if (!alertSent && statusCode == 401) {
+      if (!alertSent && statusCode == HTTP_UNAUTHORIZED) {
         Serial.println("Token expired. Trying to authenticate.");
         deviceAuthenticated = BackendClient::authenticateDevice();
 
