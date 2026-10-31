@@ -26,14 +26,14 @@ void Led::errorMessage(ErrorCode errorCode)
     toggleCount = 1;
 
     if (errorCode == ErrorCode::HARDWARE_ERROR) {
-        maxToggles = 2;
-        interval = 2000;
+        maxToggles = TOGGLES_HARDWARE;
+        interval = INTERVAL_HARDWARE;
     } else if (errorCode == ErrorCode::WIFI_ERROR) {
-        maxToggles = 4;
-        interval = 250;
+        maxToggles = TOGGLES_WIFI;
+        interval = INTERVAL_WIFI;
     } else if (errorCode == ErrorCode::HTTP_ERROR) {
-        maxToggles = 6;
-        interval = 250;
+        maxToggles = TOGGLES_HTTP;
+        interval = INTERVAL_HTTP;
     }
 }
 
