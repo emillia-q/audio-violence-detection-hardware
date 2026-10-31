@@ -11,6 +11,9 @@ enum class ButtonEvent {
 class Button
 {
 private:
+    static constexpr unsigned long DEBOUNCE_DELAY_MS = 50;
+    static constexpr unsigned long LONG_PRESS_DELAY_MS = 3000;
+
     int _buttonPin;
     unsigned long pressTime;
     bool isPressed;

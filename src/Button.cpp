@@ -24,7 +24,7 @@ ButtonEvent Button::getEvent()
     // While holding button
     if (isPressed && currentState) {
         // Long hold
-        if (!longPressHandeled && (millis() - pressTime >= 3000)) {
+        if (!longPressHandeled && (millis() - pressTime >= LONG_PRESS_DELAY_MS)) {
             longPressHandeled = true;
             return ButtonEvent::LONG_HOLD;
         }
@@ -37,7 +37,7 @@ ButtonEvent Button::getEvent()
         unsigned long pressDuration = millis() - pressTime;
         
         // Debouncing
-        if (!longPressHandeled && pressDuration >= 50) {
+        if (!longPressHandeled && pressDuration >= DEBOUNCE_DELAY_MS) {
             return ButtonEvent::SHORT_CLICK;
         }
     }
